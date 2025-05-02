@@ -1,0 +1,80 @@
+
+// generator client {
+//   provider = "prisma-client-js"
+//   output   = "../generated/prisma"
+// }
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+}
+
+
+enum AssetStatus {
+  ACTIVE
+  IN_MAINTENANCE
+  DECOMMISSIONED
+  LOST
+}
+
+enum AssetClass {
+  COMPUTER
+  PRINTER
+  SCANNER
+  LAMINATOR
+  ROUTER
+  SWITCH
+  SERVER
+  FURNITURE
+  OTHER
+}
+
+model Asset {
+  id          String      @id @default(uuid())
+  assetTag    String      @unique
+  class       AssetClass
+  status      AssetStatus @default(ACTIVE)
+  model       String
+  manufacturer String
+  serialNumber String     @unique
+  purchaseDate DateTime?
+  purchasePrice Decimal?
+  warrantyExpiry DateTime?
+  location     String?
+  assignedTo  String?
+  notes       String?
+  
+  // Computer-specific fields
+  cpu         String?
+  ram         String?
+  storage     String?
+  os          String?
+
+  // Network equipment fields
+  ports       Int?
+  macAddress  String?
+  ipAddress   String?
+
+  // Printer/Scanner specific
+  consumables String?
+  resolution  String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([assetTag])
+  @@index([serialNumber])
+  @@index([class])
+}
