@@ -1,6 +1,6 @@
 // src/routes/asset.routes.ts
 import { Router } from 'express';
-import * as assetController from '../controllers/asset.controller';
+import * as assetController from '../controllers/assetController';
 
 const router = Router();
 

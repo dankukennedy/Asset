@@ -1,7 +1,7 @@
 // src/controllers/asset.controller.ts
 import { Request, Response } from 'express';
-import * as assetService from '../services/asset.service';
-import { CreateAssetDto } from '../dtos/asset.dto';
+import * as assetService from '../services/assetService';
+import { CreateAssetDto } from '../dtos/assetDto';
 
 export const createAsset = async (req: Request, res: Response) => {
   try {

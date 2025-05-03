@@ -1,6 +1,6 @@
 // src/services/asset.service.ts
 import { PrismaClient, Asset, AssetClass, AssetStatus } from '@prisma/client';
-import { CreateAssetDto, UpdateAssetDto } from '../dtos/asset.dto';
+import { CreateAssetDto, UpdateAssetDto } from '../dtos/assetDto';
 
 const prisma = new PrismaClient();
 

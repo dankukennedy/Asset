@@ -1,4 +1,3 @@
-
 // generator client {
 //   provider = "prisma-client-js"
 //   output   = "../generated/prisma"
@@ -12,15 +11,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-}
-
 
 enum AssetStatus {
   ACTIVE
@@ -42,39 +32,57 @@ enum AssetClass {
 }
 
 model Asset {
-  id          String      @id @default(uuid())
-  assetTag    String      @unique
-  class       AssetClass
-  status      AssetStatus @default(ACTIVE)
-  model       String
-  manufacturer String
-  serialNumber String     @unique
-  purchaseDate DateTime?
-  purchasePrice Decimal?
+  id             String      @id @default(uuid())
+  assetTag       String      @unique
+  class          AssetClass
+  status         AssetStatus @default(ACTIVE)
+  model          String
+  manufacturer   String
+  serialNumber   String      @unique
+  purchaseDate   DateTime?
+  purchasePrice  Decimal?
   warrantyExpiry DateTime?
-  location     String?
-  assignedTo  String?
-  notes       String?
-  
+  location       String?
+  assignedTo     String?
+  notes          String?
+
   // Computer-specific fields
-  cpu         String?
-  ram         String?
-  storage     String?
-  os          String?
+  cpu     String?
+  ram     String?
+  storage String?
+  os      String?
 
   // Network equipment fields
-  ports       Int?
-  macAddress  String?
-  ipAddress   String?
+  ports      Int?
+  macAddress String?
+  ipAddress  String?
 
   // Printer/Scanner specific
   consumables String?
   resolution  String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([assetTag])
   @@index([serialNumber])
   @@index([class])
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  username   String
+  contact    String
+  department String
+  token     String?  @unique
+  tokenExp     DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([email])
+  @@index([contact])
+  @@index([department])
 }
