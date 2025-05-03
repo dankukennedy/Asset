@@ -3,7 +3,7 @@
  // Users Schema
  export const createUserSchema = z.object({
     email:z.string().min(11,{message:"email address cannot less than 11 characters"}).email({message:"please input email format"}).nonempty({message:"email cannot be left empty"}),
-    name:z.string().min(2,{message:"name cannot be less than 2 characters"}).max(30,{message:"name cannot be more than 30 characters"}).nonempty({message:"name cannot be left empty"}),
+    fullname:z.string().min(2,{message:"name cannot be less than 2 characters"}).max(30,{message:"name cannot be more than 30 characters"}).nonempty({message:"name cannot be left empty"}),
     password:z.string().min(4,{message:"password cannot be less than 4 characters"}).max(30,{message:"password must not be more than 30 characters"}).nonempty({message:"password cannot be left empty"})
     .regex(/[A-Z]/,{message:"password must contain at least one uppercase"})
     .regex(/[a-z]/,{message:"password must contain at least one lowercase"})

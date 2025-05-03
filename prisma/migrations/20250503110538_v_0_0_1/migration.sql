@@ -37,12 +37,13 @@ CREATE TABLE "Asset" (
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "fullname" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "username" TEXT NOT NULL,
     "contact" TEXT NOT NULL,
     "department" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT false,
     "token" TEXT,
     "tokenExp" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
