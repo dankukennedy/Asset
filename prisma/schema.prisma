@@ -70,17 +70,17 @@ model Asset {
 }
 
 model User {
-  id         String   @id @default(uuid())
+  id         String    @id @default(uuid())
   name       String
-  email      String   @unique
+  email      String    @unique
   password   String
   username   String
   contact    String
   department String
-  token     String?  @unique
-  tokenExp     DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  token      String?   @unique
+  tokenExp   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([email])
   @@index([contact])

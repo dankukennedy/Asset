@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import 'dotenv/config';
+import 'dotenv/config'; 
 import  transporter from '../catalyst/gmail'
 import prisma from '../catalyst/prisma';
 import CryptoJS from 'crypto-js';
@@ -35,7 +35,7 @@ const sendUserMail = async (email:string,token:string,link:string,username:strin
       const mailOptions = {
         from:`"CTVET SOFTWARE DEV" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: 'CTVET Account Creation  ✍️' ,
+        subject: 'CTVET Account Creation  ✍️ ✅' ,
         html: ` <div style="font-family: Arial, sans-serif; line-height: 1.6;">
           <h2 style="color: #1a5276;">Account Activation Required</h2>
           <p>Dear ${name},</p>
@@ -47,7 +47,7 @@ const sendUserMail = async (email:string,token:string,link:string,username:strin
               Activate Account
             </a>
           </p>
-          <p> Use ${username} to as your username to login </p>
+          <p style="font-weight: bold;"> Use <b style="color: #1a5276;font-family: Arial, sans-serif">${username} </b> to as your <b style="color:#d17e11;font-family: Arial, sans-serif">username</b> to login </p>
           <p>This link will expire in 7 days.</p>
           <p>If you didn't request this, please ignore this email.</p>
           <p>Best regards,<br/>CTVET Team</p>
