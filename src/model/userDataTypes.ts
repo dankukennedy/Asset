@@ -57,15 +57,17 @@ export const tokenUserSchema = z.object({
  // Update User Schema
 export const updateUserSchema = z.object({
    id: z.string().nonempty({message: 'User id cannot be left empty'}),
-   pic: z.any().optional(), // Changed to z.any() for file uploads
+   pic: z.any().optional(),
+   fullname:z.string().min(2,{message:"name cannot be less than 2 characters"}).max(30,{message:"name cannot be more than 30 characters"}).optional(),
    email: z.string()
      .email({message: 'Invalid email'})
      .min(10, {message: 'Email must be at least 10 characters'})
      .max(100)
-     .nonempty({message: 'Email is required'}),
+     .optional(),
    contact: z.string()
      .min(10, {message: 'Contact must be 10 digits'})
      .max(13, {message: 'Contact must be 13 digits'})
-     .regex(/^\d+$/, {message: 'Contact must contain only digits'})
+     .regex(/^\d+$/, {message: 'Contact must contain only digits'}).optional(),
+     department:z.string().min(2,{message:'department must be more than two characters'}).max(100,{message:'must not be more than 100 characters'}).optional(),
  });
  export type UpdateUserSchemaInput = Omit<z.infer<typeof updateUserSchema>, 'pic'>

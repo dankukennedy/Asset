@@ -1,4 +1,5 @@
 import express from 'express'
+import env from "../env";
 //import userRoutes from './routes/assetRoutes'
 import userRoutes from './routes/userRoutes';
 
@@ -13,3 +14,4 @@ app.use('/api', userRoutes)
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
 })
+

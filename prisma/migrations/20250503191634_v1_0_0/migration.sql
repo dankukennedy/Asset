@@ -43,6 +43,7 @@ CREATE TABLE "User" (
     "username" TEXT NOT NULL,
     "contact" TEXT NOT NULL,
     "department" TEXT NOT NULL,
+    "profile" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT false,
     "token" TEXT,
     "tokenExp" TIMESTAMP(3),

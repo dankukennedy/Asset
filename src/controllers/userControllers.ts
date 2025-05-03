@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
-import { User } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
+type User = Prisma.UserGetPayload<{}>
 import { ZodError } from 'zod'
-import { createUserSchema, loginUserSchema, tokenUserSchema } from '../model/userDataTypes';
-import { activateToken, createUser, loginUser } from '../services/userServices';
+import { createUserSchema, emailUserSchema, loginUserSchema, resetPassUserSchema, tokenUserSchema, updateUserSchema } from '../model/userDataTypes';
+import { activateToken, createUser, loginUser, resetActivationToken, resetPassword, resetPasswordWithOTP, updateUser } from '../services/userServices';
 
 // Define a type for the user data that will be returned (excluding sensitive fields)
 type SafeUser = Omit<User, 'password' | 'token' | 'tokenExp'> & {
@@ -84,5 +85,95 @@ export const activateTokenHandler = async(req:Request, res:Response<ApiResponse<
            return;
          }
            next(error);
+    }
+}
+
+
+export const resetActivationTokenHandler = async(req:Request, res:Response<ApiResponse<User>>, next:NextFunction)  =>{
+    try {
+        const validate = emailUserSchema.parse(req.body);
+        const result  = await resetActivationToken(validate);
+        res.status(201).json({success:result.success, message:result.message, data:result.user});
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err=>({
+                 field: err.path.join('.'),
+                 message: err.message
+            }))
+            res.status(400).json({success:false, message:'Reset Token Validation Failed',errors: errorMessages});
+            return
+        } if(error instanceof Error){
+            res.status(400).json({success: false,message: error.message});
+            return
+        }
+        next(error);
+    }
+}
+
+
+export const resetPasswordWithOTPHandler = async(req:Request, res:Response<ApiResponse<User>>, next:NextFunction) =>{
+    try {
+        const validate = emailUserSchema.parse(req.body);
+        const result =  await resetPasswordWithOTP(validate);
+        res.status(201).json({success:result.success, message:result.message, data:result.user});
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err=>({
+                field: err.path.join('.'),
+                message: err.message
+            }))
+            res.status(400).json({success:false, message:'Rest Password with Token validation Failed', errors: errorMessages});
+            return;
+        } if(error instanceof Error){
+            res.status(400).json({success:false, message:error.message});
+            return
+        }
+        next(error);
+    }
+}
+
+
+export const  resetPasswordHandler = async(req:Request, res:Response<ApiResponse<User>>, next:NextFunction) =>{
+    try {
+        const validate = resetPassUserSchema.parse(req.body)
+        const result = await resetPassword(validate)
+        res.status(201).json({success:result.success, message:result.message, data:result.updateUser});
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err=>({
+                field:err.path.join('.'),
+                message: err.message
+            }))
+            res.status(400).json({success:false, message:'Password reset Validation Failed ', errors:errorMessages})
+            return
+        }if(error instanceof Error){
+            res.status(400).json({success:false,message:error.message});
+            return
+        }
+        next(error);
+    }
+}
+
+
+export const updateUserHandler = async(req:Request, res:Response<ApiResponse<User>>, next:NextFunction) =>{
+    try {
+        const updateData = {...req.body, pic:req.file}
+        const validate =  updateUserSchema.parse(updateData);
+        const result = await updateUser(validate);
+        res.status(201).json({success:true, message:result.message,data:result.user});
+
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err=>({
+                field:err.path.join('.'),
+                message: err.message
+            }))
+            res.status(400).json({success:false, message:'Password reset Validation Failed ', errors:errorMessages})
+            return
+        }if(error instanceof Error){
+            res.status(400).json({success:false,message:error.message});
+            return
+        }
+        next(error);
     }
 }
