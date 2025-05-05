@@ -25,14 +25,14 @@ export const createAsset = async(input: assetDataSchemaInput): Promise<{ success
    }
 }
 
-export const allAssets = async (): Promise<{success: boolean; message: string; data: Asset[];}> => {
+export const allAssets = async (): Promise<{success: boolean; message: string; parsedAssets: Asset[];}> => {
     try {
       const allAsset = await prisma.asset.findMany({
         orderBy: { createdAt: 'desc' }, // Optional: Sort by latest first
       });
 
       if (allAsset.length === 0) {
-        return { success: true, message: 'No assets found', data: [] };
+        return { success: true, message: 'No assets found', parsedAssets: [] };
       }
 
       // Parse JSON details if they exist
@@ -41,7 +41,7 @@ export const allAssets = async (): Promise<{success: boolean; message: string; d
         details: asset.details ? JSON.parse(asset.details as string) : null,
       }));
 
-      return {success: true,message: 'Assets retrieved successfully',  data:parsedAssets,};
+      return {success: true,message: 'Assets retrieved successfully',  parsedAssets,};
     } catch (error) {
       console.error('Error fetching assets:', error);
       throw new Error('Failed to retrieve assets');
