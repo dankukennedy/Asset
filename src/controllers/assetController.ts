@@ -1,7 +1,7 @@
 import { Request,Response, NextFunction } from "express";
 import { assetDataSchema } from "../model/assetDataTypes"
 import { allAssets, createAsset } from "../services/assetService";
-import type { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { ZodError } from 'zod'
 
 type Asset = Prisma.AssetGetPayload<{}>
