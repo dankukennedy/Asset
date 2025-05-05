@@ -69,12 +69,18 @@ enum AssetClass {
 //   @@index([class])
 // }
 
+enum  Role{
+  ADMIN
+  MANAGER
+  USER
+}
 model User {
   id         String    @id @default(uuid())
   fullname   String
   email      String    @unique
   password   String
   username   String
+  role       Role  @default(USER)
   contact    String
   department String
   profile    String?
@@ -89,20 +95,23 @@ model User {
   @@index([department])
 }
 
-
 model Asset {
-  id          String     @id @default(uuid())
-  category    String
-  type        String
-  subType     String?
-  name        String
-  serialNo    String? 
-  details     Json?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id         String   @id @default(uuid())
+  category   String
+  type       String
+  subType    String?
+  name       String
+  model      String?
+  vendor     String
+  embossCode String?
+  serialNo   String?
+  details    Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([serialNo], name: "asset_serialNo_unique")
 }
+
 model Receiving {
   id           String   @id @default(uuid())
   manufacturer String

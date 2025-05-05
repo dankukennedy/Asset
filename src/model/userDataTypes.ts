@@ -68,6 +68,7 @@ export const updateUserSchema = z.object({
      .min(10, {message: 'Contact must be 10 digits'})
      .max(13, {message: 'Contact must be 13 digits'})
      .regex(/^\d+$/, {message: 'Contact must contain only digits'}).optional(),
+     role: z.string().min(5,{message:"role cannot be less than 4 characters"}).max(7).optional(),
      department:z.string().min(2,{message:'department must be more than two characters'}).max(100,{message:'must not be more than 100 characters'}).optional(),
  });
  export type UpdateUserSchemaInput = Omit<z.infer<typeof updateUserSchema>, 'pic'>

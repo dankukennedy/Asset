@@ -151,6 +151,7 @@ export const loginUser = async(input:loginUserSchemaInput) =>{
             username: emailUser.username,
             contact: emailUser.contact,
             profile: emailUser.profile,
+            role:emailUser.role,
             department: emailUser.department,
             isActive:emailUser.isActive,
             createdAt: emailUser.createdAt,
