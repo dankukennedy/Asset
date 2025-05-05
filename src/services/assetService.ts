@@ -1,10 +1,11 @@
 import prisma from '../catalyst/prisma';
 import { assetDataSchemaInput } from '../model/assetDataTypes';
+import { Asset } from '@prisma/client';
 
-export const createAsset = async(input:assetDataSchemaInput) =>{
+export const createAsset = async(input: assetDataSchemaInput): Promise<{ success: boolean; message: string; newAsset: Asset }> => {
    try {
        const serial = await prisma.asset.findFirst({
-        where:{serialNo:input.serialNo}
+           where: { serialNo: input.serialNo }
        })
 
        if(serial) throw new Error('Serial Number existed with an asset all ready');
@@ -24,22 +25,22 @@ export const createAsset = async(input:assetDataSchemaInput) =>{
    }
 }
 
-export const allAssets = async () => {
+export const allAssets = async (): Promise<{success: boolean; message: string; data: Asset[];}> => {
     try {
       const allAsset = await prisma.asset.findMany({
         orderBy: { createdAt: 'desc' }, // Optional: Sort by latest first
       });
-  
+
       if (allAsset.length === 0) {
         return { success: true, message: 'No assets found', data: [] };
       }
-  
+
       // Parse JSON details if they exist
       const parsedAssets = allAsset.map(asset => ({
         ...asset,
         details: asset.details ? JSON.parse(asset.details as string) : null,
       }));
-  
+
       return {success: true,message: 'Assets retrieved successfully',  data:parsedAssets,};
     } catch (error) {
       console.error('Error fetching assets:', error);
