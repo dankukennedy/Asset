@@ -40,7 +40,7 @@ export const allAssets = async () => {
         details: asset.details ? JSON.parse(asset.details as string) : null,
       }));
   
-      return {success: true,message: 'Assets retrieved successfully', parsedAssets,};
+      return {success: true,message: 'Assets retrieved successfully',  data:parsedAssets,};
     } catch (error) {
       console.error('Error fetching assets:', error);
       throw new Error('Failed to retrieve assets');

@@ -43,7 +43,7 @@ export const createAssetHandler = async(req:Request, res:Response<ApiResponse<As
 export const allAssetsHandler = async(req:Request, res:Response<ApiResponse<Asset[]>>, next:NextFunction) =>{
     try {
         const result = await allAssets();
-        res.status(201).json({success:result.success, message:result.message, data:result.parsedAssets});
+        res.status(201).json({success:result.success, message:result.message, data:result.data});
     } catch (error) {
         if(error instanceof ZodError){
             const errorMessages = error.errors.map(err=>({
