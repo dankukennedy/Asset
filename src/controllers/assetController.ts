@@ -24,7 +24,7 @@ export const createAssetHandler = async(req:Request, res:Response<ApiResponse<As
  try {
     const validate = assetDataSchema.parse(req.body);
     const result  = await createAsset(validate);
-    res.status(201).json({success:result.success, message:result.message, data:result.newAsset})
+    res.status(201).json({success:result.success, message:result.message, data:result.parsedAsset})
  } catch (error) {
     if(error instanceof ZodError){
         const errorMessages = error.errors.map(err =>({

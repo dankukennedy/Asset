@@ -2,7 +2,7 @@ import prisma from '../catalyst/prisma';
 import { assetDataSchemaInput } from '../model/assetDataTypes';
 import { Asset } from '@prisma/client';
 
-export const createAsset = async(input: assetDataSchemaInput): Promise<{ success: boolean; message: string; newAsset: Asset }> => {
+export const createAsset = async(input: assetDataSchemaInput): Promise<{ success: boolean; message: string; parsedAsset: Asset }> => {
    try {
        const serial = await prisma.asset.findFirst({
            where: { serialNo: input.serialNo }
@@ -16,8 +16,12 @@ export const createAsset = async(input: assetDataSchemaInput): Promise<{ success
            details: input.details ? JSON.stringify(input.details) : undefined
          }
        })
-
-       return {success:true, message:'Asset created successfully', newAsset}
+        // Parse JSON details if they exist
+        const parsedAsset = {
+          ...newAsset,
+          details: newAsset.details ? JSON.parse(newAsset.details as string) : null,
+        };
+       return {success:true, message:'Asset created successfully', parsedAsset}
 
    } catch (error) {
      console.log('Asset cannot be created');
