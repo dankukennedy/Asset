@@ -347,7 +347,7 @@ export const activateToken = async(input:tokenUserSchemaInput) => {
  ************************************************************
  * FUNCTION TO RESET PASSWORD BY OTP
  * **********************************************************
- **/ 
+ **/
 // Function for token generation
 const generateOTP = ():string =>{
     return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
@@ -473,7 +473,7 @@ export const resetPasswordWithOTP = async (input: emailUserSchemaInput) => {
                 tokenExp,
             }
         });
-        
+
         // Send activation OTP email
         await sendOTPEmail(user.email, otp, user.fullname);
         // Send SMS - Corrected parameter order
@@ -597,11 +597,11 @@ export const updateUser = async (input: UpdateUserSchemaInput & {pic?: Express.M
           ...(localImageUrl && { localPicPath: localImageUrl })
         }
       });
-  
+
       if (!user) throw new Error('User Details cannot be updated');
-  
+
       return {success: true, message: 'User Details successfully updated',user};
-  
+
     } catch(error) {
       console.error('User Updating error:', error);
       throw error;

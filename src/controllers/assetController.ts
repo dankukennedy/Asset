@@ -1,32 +1,62 @@
-// src/controllers/asset.controller.ts
-import { Request, Response } from 'express';
-import * as assetService from '../services/assetService';
-import { CreateAssetDto } from '../dtos/assetDto';
+import { Request,Response, NextFunction } from "express";
+import { assetDataSchema } from "../model/assetDataTypes"
+import { allAssets, createAsset } from "../services/assetService";
+import type { Prisma } from '@prisma/client'
+import { ZodError } from 'zod'
 
-export const createAsset = async (req: Request, res: Response) => {
-  try {
-    const asset = await assetService.createAsset(req.body as CreateAssetDto);
-    res.status(201).json(asset);
-  } catch (error:unknown) {
+type Asset = Prisma.AssetGetPayload<{}>
+
+
+  type ApiResponse<T = Asset> = {
+    success: boolean;  message: string;  data?: T;
+    asset?: T; 
+    errors?: Array<{
+      field: string;
+      message: string;
+    }>;
+};
+
+
+
+export const createAssetHandler = async(req:Request, res:Response<ApiResponse<Asset>>, next:NextFunction) =>{
+ try {
+    const validate = assetDataSchema.parse(req.body);
+    const result  = await createAsset(validate);
+    res.status(201).json({success:result.success, message:result.message, data:result.newAsset})
+ } catch (error) {
+    if(error instanceof ZodError){
+        const errorMessages = error.errors.map(err =>({
+            field: err.path.join('.'),
+            message: err.message
+        }))
+        res.status(400).json({success:false, message:'creating Asset validation Fail', errors: errorMessages});
+        return
+    }
     if(error instanceof Error){
-      res.status(400).json({ error: error.message });
-    }else {
-      res.status(500).json({ error: 'An unknown error occurred' });
+        res.status(400).json({success:false, message:error.message});
+        return
     }
+    next(error);
   }
-};
+}
 
-export const getAllAssets = async (req: Request, res: Response) => {
-  try {
-    const assets = await assetService.getAssets(req.query);
-    res.json(assets);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: 'An unknown error occurred' });
+export const allAssetsHandler = async(req:Request, res:Response<ApiResponse<Asset[]>>, next:NextFunction) =>{
+    try {
+        const result = await allAssets();
+        res.status(201).json({success:result.success, message:result.message, data:result.parsedAssets});
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err=>({
+                field: err.path.join('.'),
+                message:err.message
+            }));
+            res.status(400).json({success:false, message:'Fetching All Asst Failed', errors:errorMessages});
+            return;
+        }
+         if(error instanceof Error){
+            res.status(400).json({success:false, message:error.message});
+            return 
+         }
+         next(error);
     }
-  }
-};
-
-// Add other controller methods (getById, update, delete, etc.)
+}

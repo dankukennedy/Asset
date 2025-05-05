@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
   destination: (req: Request, file: MulterFile, cb: (error: Error | null, destination: string) => void) => {
     // Create both temp upload dir and profileImage dir
     const uploadDir = 'tmp/uploads';
-    const profileImageDir = 'public/profileImages';
+    const profileImageDir = 'src/profileImages';
 
     fs.mkdirSync(uploadDir, { recursive: true });
     fs.mkdirSync(profileImageDir, { recursive: true });

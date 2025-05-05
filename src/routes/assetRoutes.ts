@@ -1,14 +1,12 @@
-// src/routes/asset.routes.ts
-import { Router } from 'express';
-import * as assetController from '../controllers/assetController';
+import express from 'express'
+import { allAssetsHandler, createAssetHandler } from '../controllers/assetController';
 
-const router = Router();
+const router = express.Router();
 
-router.post('/assets', assetController.createAsset);
-router.get('/assets', assetController.getAllAssets);
-// router.get('/assets/:id', assetController.getAssetById);
-// router.put('/assets/:id', assetController.updateAsset);
-// router.delete('/assets/:id', assetController.deleteAsset);
-// router.get('/assets/class/:class', assetController.getAssetsByClass);
+router.post('/asset', (req, res, next)=>{createAssetHandler(req, res, next).catch(next)});
 
-export default router;
+router.get('/getAllAsset', (req, res, next)=>{allAssetsHandler(req, res, next).catch(next)});
+
+
+
+export default router

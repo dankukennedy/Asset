@@ -1,0 +1,2215 @@
+Asset Registration System with Prisma and Node.js
+Based on your JSON structure, I'll create a comprehensive asset registration system using Prisma and Node.js. Here's how to implement it:
+
+1. First, let's define the Prisma schema
+prisma
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Asset {
+  id          String     @id @default(uuid())
+  category    String
+  type        String
+  subType     String?
+  name        String
+  serialNo    String?
+  details     Json?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([serialNo], name: "asset_serialNo_unique")
+}
+2. Set up the asset registration service
+typescript
+// services/assetService.ts
+import { PrismaClient } from '@prisma/client';
+import { AssetInput } from '../types/assetTypes';
+
+const prisma = new PrismaClient();
+
+export const registerAsset = async (assetData: AssetInput) => {
+  try {
+    // Validate input data
+    if (!assetData.category || !assetData.type || !assetData.name) {
+      throw new Error('Missing required fields: category, type, or name');
+    }
+
+    // Check if asset with same serialNo already exists
+    if (assetData.serialNo) {
+      const existingAsset = await prisma.asset.findUnique({
+        where: { serialNo: assetData.serialNo },
+      });
+      if (existingAsset) {
+        throw new Error(`Asset with serial number ${assetData.serialNo} already exists`);
+      }
+    }
+
+    // Create the asset
+    const asset = await prisma.asset.create({
+      data: {
+        category: assetData.category,
+        type: assetData.type,
+        subType: assetData.subType,
+        name: assetData.name,
+        serialNo: assetData.serialNo,
+        details: assetData.details,
+      },
+    });
+
+    return asset;
+  } catch (error) {
+    console.error('Error registering asset:', error);
+    throw error;
+  }
+};
+
+export const getAssetsByCategory = async (category: string) => {
+  return prisma.asset.findMany({
+    where: { category },
+  });
+};
+
+export const getAssetBySerialNo = async (serialNo: string) => {
+  return prisma.asset.findUnique({
+    where: { serialNo },
+  });
+};
+
+export const updateAsset = async (id: string, updateData: Partial<AssetInput>) => {
+  return prisma.asset.update({
+    where: { id },
+    data: updateData,
+  });
+};
+
+export const deleteAsset = async (id: string) => {
+  return prisma.asset.delete({
+    where: { id },
+  });
+};
+3. Define TypeScript types
+typescript
+// types/assetTypes.ts
+export interface AssetInput {
+  category: string;
+  type: string;
+  subType?: string;
+  name: string;
+  serialNo?: string;
+  details?: any;
+}
+
+export interface ComputerDetails {
+  serialNo: string;
+  RAM?: string;
+  CPU?: string;
+  STORAGE?: string;
+  screen?: string;
+  model?: string;
+  os?: string;
+}
+
+export interface PrinterDetails {
+  model: string;
+  serialNo: string;
+}
+
+export interface FurnitureDetails {
+  name: string;
+  size: string;
+}
+
+export interface ElectronicsDetails {
+  name: string;
+  capacity?: string;
+  serialNo: string;
+}
+4. Create the asset controller
+typescript
+// controllers/assetController.ts
+import { Request, Response } from 'express';
+import {
+  registerAsset,
+  getAssetsByCategory,
+  getAssetBySerialNo,
+  updateAsset,
+  deleteAsset,
+} from '../services/assetService';
+import { AssetInput } from '../types/assetTypes';
+
+export const createAsset = async (req: Request, res: Response) => {
+  try {
+    const assetData: AssetInput = req.body;
+    const asset = await registerAsset(assetData);
+    res.status(201).json(asset);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const getAllAssets = async (req: Request, res: Response) => {
+  try {
+    const assets = await prisma.asset.findMany();
+    res.json(assets);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getAssets = async (req: Request, res: Response) => {
+  try {
+    const { category } = req.params;
+    const assets = await getAssetsByCategory(category);
+    res.json(assets);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getAsset = async (req: Request, res: Response) => {
+  try {
+    const { serialNo } = req.params;
+    const asset = await getAssetBySerialNo(serialNo);
+    if (!asset) {
+      return res.status(404).json({ error: 'Asset not found' });
+    }
+    res.json(asset);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const modifyAsset = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    const asset = await updateAsset(id, updateData);
+    res.json(asset);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const removeAsset = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await deleteAsset(id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+5. Set up routes
+typescript
+// routes/assetRoutes.ts
+import express from 'express';
+import {
+  createAsset,
+  getAllAssets,
+  getAssets,
+  getAsset,
+  modifyAsset,
+  removeAsset,
+} from '../controllers/assetController';
+
+const router = express.Router();
+
+router.post('/', createAsset);
+router.get('/', getAllAssets);
+router.get('/:category', getAssets);
+router.get('/serial/:serialNo', getAsset);
+router.put('/:id', modifyAsset);
+router.delete('/:id', removeAsset);
+
+export default router;
+6. Example usage to register assets
+Here's how you would register assets based on your JSON structure:
+
+typescript
+// Example usage in your application
+import { registerAsset } from './services/assetService';
+
+// Register a computer (all-in-one)
+await registerAsset({
+  category: 'device',
+  type: 'computer',
+  subType: 'all-in-one',
+  name: 'HP',
+  serialNo: '2344',
+  details: {
+    RAM: '16GB',
+    CPU: 'i7',
+    STORAGE: '512GB SSD',
+    screen: '24"',
+    model: 'HP EliteOne',
+    os: 'Windows 10'
+  }
+});
+
+// Register a printer
+await registerAsset({
+  category: 'device',
+  type: 'printer',
+  name: 'HP',
+  serialNo: '2344',
+  details: {
+    model: 'HP z40'
+  }
+});
+
+// Register furniture
+await registerAsset({
+  category: 'furniture',
+  type: 'chair',
+  name: 'executive',
+  details: {
+    size: 'small'
+  }
+});
+
+// Register electronics
+await registerAsset({
+  category: 'electronics',
+  type: 'airconditioner',
+  name: 'chicago',
+  serialNo: '2344',
+  details: {
+    capacity: '1.5'
+  }
+});
+7. Main application setup
+typescript
+// app.ts
+import express from 'express';
+import cors from 'cors';
+import assetRoutes from './routes/assetRoutes';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use('/api/assets', assetRoutes);
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  process.exit();
+});
+
+
+
+/////////////////////////////////////////////////////
+React Vite TS Frontend with Redux Toolkit, Material UI, and Toastify
+Here's a comprehensive setup for your asset management frontend using React with TypeScript, Vite, Redux Toolkit, Material UI, and Toastify.
+
+1. Create the Vite React TS Project
+bash
+npm create vite@latest asset-management-frontend --template react-ts
+cd asset-management-frontend
+npm install @reduxjs/toolkit react-redux @mui/material @mui/icons-material @emotion/react @emotion/styled react-toastify axios react-router-dom
+npm install -D @types/react-redux @types/react-router-dom
+2. Project Structure
+src/
+├── app/
+│   ├── store.ts
+│   └── hooks.ts
+├── features/
+│   └── assets/
+│       ├── assetsApi.ts
+│       ├── assetsSlice.ts
+│       ├── components/
+│       │   ├── AssetForm.tsx
+│       │   ├── AssetList.tsx
+│       │   └── AssetDetails.tsx
+│       └── types.ts
+├── components/
+│   ├── Layout/
+│   │   ├── MainLayout.tsx
+│   │   └── Navbar.tsx
+│   └── Shared/
+│       ├── Loading.tsx
+│       └── Error.tsx
+├── pages/
+│   ├── Home.tsx
+│   ├── Assets/
+│   │   ├── AllAssets.tsx
+│   │   ├── CreateAsset.tsx
+│   │   ├── EditAsset.tsx
+│   │   └── ViewAsset.tsx
+│   └── NotFound.tsx
+├── services/
+│   └── api.ts
+├── App.tsx
+├── main.tsx
+├── vite-env.d.ts
+└── index.css
+3. Configure Redux Toolkit
+typescript
+// app/store.ts
+import { configureStore } from '@reduxjs/toolkit';
+import { setupListeners } from '@reduxjs/toolkit/query';
+import { assetsApi } from '../features/assets/assetsApi';
+
+export const store = configureStore({
+  reducer: {
+    [assetsApi.reducerPath]: assetsApi.reducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(assetsApi.middleware),
+});
+
+setupListeners(store.dispatch);
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+typescript
+// app/hooks.ts
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from './store';
+
+export const useAppDispatch = () => useDispatch<AppDispatch>();
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+4. Create Assets API Slice
+typescript
+// features/assets/assetsApi.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { Asset, AssetInput } from './types';
+
+export const assetsApi = createApi({
+  reducerPath: 'assetsApi',
+  baseQuery: fetchBaseQuery({ baseUrl: '/api/assets' }),
+  tagTypes: ['Asset'],
+  endpoints: (builder) => ({
+    getAllAssets: builder.query<Asset[], void>({
+      query: () => '/',
+      providesTags: ['Asset'],
+    }),
+    getAssetsByCategory: builder.query<Asset[], string>({
+      query: (category) => `/${category}`,
+      providesTags: ['Asset'],
+    }),
+    getAssetBySerialNo: builder.query<Asset, string>({
+      query: (serialNo) => `/serial/${serialNo}`,
+      providesTags: ['Asset'],
+    }),
+    createAsset: builder.mutation<Asset, AssetInput>({
+      query: (asset) => ({
+        url: '/',
+        method: 'POST',
+        body: asset,
+      }),
+      invalidatesTags: ['Asset'],
+    }),
+    updateAsset: builder.mutation<Asset, { id: string; data: Partial<AssetInput> }>({
+      query: ({ id, data }) => ({
+        url: `/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['Asset'],
+    }),
+    deleteAsset: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Asset'],
+    }),
+  }),
+});
+
+export const {
+  useGetAllAssetsQuery,
+  useGetAssetsByCategoryQuery,
+  useGetAssetBySerialNoQuery,
+  useCreateAssetMutation,
+  useUpdateAssetMutation,
+  useDeleteAssetMutation,
+} = assetsApi;
+5. Set Up Material UI Theme
+typescript
+// main.tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+import { store } from './app/store';
+import App from './App';
+import './index.css';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+    background: {
+      default: '#f5f5f5',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+});
+
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <App />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+      </ThemeProvider>
+    </Provider>
+  </React.StrictMode>
+);
+6. Create Main Layout Components
+tsx
+// components/Layout/MainLayout.tsx
+import { Outlet } from 'react-router-dom';
+import { Box, Container, CssBaseline } from '@mui/material';
+import Navbar from './Navbar';
+
+const MainLayout = () => {
+  return (
+    <>
+      <CssBaseline />
+      <Navbar />
+      <Box sx={{ backgroundColor: (theme) => theme.palette.background.default, minHeight: '100vh' }}>
+        <Container maxWidth="xl" sx={{ pt: 4, pb: 4 }}>
+          <Outlet />
+        </Container>
+      </Box>
+    </>
+  );
+};
+
+export default MainLayout;
+tsx
+// components/Layout/Navbar.tsx
+import { AppBar, Toolbar, Typography, Button } from '@mui/material';
+import { Link } from 'react-router-dom';
+
+const Navbar = () => {
+  return (
+    <AppBar position="static">
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          Asset Management
+        </Typography>
+        <Button color="inherit" component={Link} to="/">
+          Home
+        </Button>
+        <Button color="inherit" component={Link} to="/assets">
+          All Assets
+        </Button>
+        <Button color="inherit" component={Link} to="/assets/create">
+          Add Asset
+        </Button>
+      </Toolbar>
+    </AppBar>
+  );
+};
+
+export default Navbar;
+7. Create Asset Form Component
+tsx
+// features/assets/components/AssetForm.tsx
+import { useState } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { AssetInput } from '../types';
+import {
+  TextField,
+  Button,
+  Box,
+  Grid,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  Typography,
+  Paper,
+} from '@mui/material';
+import { toast } from 'react-toastify';
+
+interface AssetFormProps {
+  defaultValues?: AssetInput;
+  onSubmit: SubmitHandler<AssetInput>;
+  isLoading: boolean;
+}
+
+const categories = ['device', 'furniture', 'electronics', 'others'];
+const deviceTypes = ['computer', 'printer', 'scanner', 'laminator', 'router', 'switch', 'server'];
+const computerSubTypes = ['all-in-one', 'laptop', 'desktop'];
+const furnitureTypes = ['desk', 'chair', 'shelve', 'table'];
+
+const AssetForm = ({ defaultValues, onSubmit, isLoading }: AssetFormProps) => {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<AssetInput>({ defaultValues });
+
+  const [category, setCategory] = useState(defaultValues?.category || '');
+
+  const handleFormSubmit: SubmitHandler<AssetInput> = (data) => {
+    try {
+      onSubmit(data);
+      toast.success('Asset saved successfully!');
+    } catch (error) {
+      toast.error('Failed to save asset');
+    }
+  };
+
+  return (
+    <Paper elevation={3} sx={{ p: 4 }}>
+      <Typography variant="h6" gutterBottom>
+        Asset Details
+      </Typography>
+      <Box component="form" onSubmit={handleSubmit(handleFormSubmit)} noValidate sx={{ mt: 3 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel id="category-label">Category</InputLabel>
+              <Select
+                labelId="category-label"
+                id="category"
+                label="Category"
+                value={category}
+                {...register('category', { required: 'Category is required' })}
+                onChange={(e) => setCategory(e.target.value)}
+                error={!!errors.category}
+              >
+                {categories.map((cat) => (
+                  <MenuItem key={cat} value={cat}>
+                    {cat}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel id="type-label">Type</InputLabel>
+              <Select
+                labelId="type-label"
+                id="type"
+                label="Type"
+                {...register('type', { required: 'Type is required' })}
+                error={!!errors.type}
+              >
+                {category === 'device' &&
+                  deviceTypes.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
+                {category === 'furniture' &&
+                  furnitureTypes.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
+                {category === 'electronics' && (
+                  <MenuItem value="airconditioner">Air Conditioner</MenuItem>
+                )}
+                {category === 'others' && <MenuItem value="other">Other</MenuItem>}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {watch('type') === 'computer' && (
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel id="subType-label">Sub Type</InputLabel>
+                <Select
+                  labelId="subType-label"
+                  id="subType"
+                  label="Sub Type"
+                  {...register('subType')}
+                >
+                  {computerSubTypes.map((subType) => (
+                    <MenuItem key={subType} value={subType}>
+                      {subType}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          )}
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Name"
+              {...register('name', { required: 'Name is required' })}
+              error={!!errors.name}
+              helperText={errors.name?.message}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Serial Number"
+              {...register('serialNo')}
+              error={!!errors.serialNo}
+              helperText={errors.serialNo?.message}
+            />
+          </Grid>
+
+          {/* Additional fields based on category/type can be added here */}
+
+          <Grid item xs={12}>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              disabled={isLoading}
+              sx={{ mt: 2 }}
+            >
+              {isLoading ? 'Saving...' : 'Save Asset'}
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
+    </Paper>
+  );
+};
+
+export default AssetForm;
+8. Create Asset List Component
+tsx
+// features/assets/components/AssetList.tsx
+import { DataGrid, GridColDef, GridToolbar } from '@mui/x-data-grid';
+import { Link } from 'react-router-dom';
+import { Button, Box } from '@mui/material';
+import { Asset } from '../types';
+import { useGetAllAssetsQuery } from '../assetsApi';
+
+const AssetList = () => {
+  const { data: assets, isLoading, error } = useGetAllAssetsQuery();
+
+  const columns: GridColDef<Asset>[] = [
+    { field: 'name', headerName: 'Name', flex: 1 },
+    { field: 'category', headerName: 'Category', flex: 1 },
+    { field: 'type', headerName: 'Type', flex: 1 },
+    { field: 'serialNo', headerName: 'Serial No', flex: 1 },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 200,
+      renderCell: (params) => (
+        <Box>
+          <Button
+            component={Link}
+            to={`/assets/${params.row.id}`}
+            size="small"
+            variant="outlined"
+            sx={{ mr: 1 }}
+          >
+            View
+          </Button>
+          <Button
+            component={Link}
+            to={`/assets/edit/${params.row.id}`}
+            size="small"
+            variant="outlined"
+          >
+            Edit
+          </Button>
+        </Box>
+      ),
+    },
+  ];
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading assets</div>;
+
+  return (
+    <Box sx={{ height: 600, width: '100%' }}>
+      <DataGrid
+        rows={assets || []}
+        columns={columns}
+        pageSize={10}
+        rowsPerPageOptions={[10, 25, 50]}
+        components={{ Toolbar: GridToolbar }}
+        getRowId={(row) => row.id}
+      />
+    </Box>
+  );
+};
+
+export default AssetList;
+9. Set Up Routing
+tsx
+// App.tsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MainLayout from './components/Layout/MainLayout';
+import Home from './pages/Home';
+import AllAssets from './pages/Assets/AllAssets';
+import CreateAsset from './pages/Assets/CreateAsset';
+import EditAsset from './pages/Assets/EditAsset';
+import ViewAsset from './pages/Assets/ViewAsset';
+import NotFound from './pages/NotFound';
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Home />} />
+          <Route path="assets">
+            <Route index element={<AllAssets />} />
+            <Route path="create" element={<CreateAsset />} />
+            <Route path="edit/:id" element={<EditAsset />} />
+            <Route path=":id" element={<ViewAsset />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default App;
+10. Create Pages
+tsx
+// pages/Assets/CreateAsset.tsx
+import { Box, Typography } from '@mui/material';
+import AssetForm from '../../features/assets/components/AssetForm';
+import { useCreateAssetMutation } from '../../features/assets/assetsApi';
+import { AssetInput } from '../../features/assets/types';
+
+const CreateAsset = () => {
+  const [createAsset, { isLoading }] = useCreateAssetMutation();
+
+  const handleSubmit = async (assetData: AssetInput) => {
+    await createAsset(assetData).unwrap();
+  };
+
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Add New Asset
+      </Typography>
+      <AssetForm onSubmit={handleSubmit} isLoading={isLoading} />
+    </Box>
+  );
+};
+
+export default CreateAsset;
+tsx
+// pages/Assets/EditAsset.tsx
+import { useParams } from 'react-router-dom';
+import { Box, Typography } from '@mui/material';
+import AssetForm from '../../features/assets/components/AssetForm';
+import { useGetAssetQuery, useUpdateAssetMutation } from '../../features/assets/assetsApi';
+import { AssetInput } from '../../features/assets/types';
+
+const EditAsset = () => {
+  const { id } = useParams<{ id: string }>();
+  const { data: asset, isLoading: isFetching } = useGetAssetQuery(id!);
+  const [updateAsset, { isLoading }] = useUpdateAssetMutation();
+
+  const handleSubmit = async (assetData: AssetInput) => {
+    await updateAsset({ id: id!, data: assetData }).unwrap();
+  };
+
+  if (isFetching) return <div>Loading...</div>;
+  if (!asset) return <div>Asset not found</div>;
+
+  return (
+    <Box>
+      <Typography variant="h4" gutterBottom>
+        Edit Asset
+      </Typography>
+      <AssetForm defaultValues={asset} onSubmit={handleSubmit} isLoading={isLoading} />
+    </Box>
+  );
+};
+
+export default EditAsset;
+11. Configure API Service
+typescript
+// services/api.ts
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        // Handle unauthorized
+      } else if (error.response.status === 404) {
+        // Handle not found
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+12. Add Global Styles
+css
+/* index.css */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+}
+
+.Toastify__toast-container {
+  width: auto !important;
+  max-width: 500px;
+}
+
+.Toastify__toast {
+  border-radius: 8px !important;
+}
+Key Features Implemented:
+Redux Toolkit Query for efficient data fetching and caching
+
+Material UI for a professional UI with responsive design
+
+React Toastify for user notifications
+
+React Hook Form for form management with validation
+
+React Router for navigation
+
+TypeScript for type safety
+
+Modular Architecture with clear separation of concerns
+
+
+//////////////////
+User Roles and Access Control Implementation
+I'll enhance the system to include user roles (Admin, Manager, User) with proper access control. Here's the comprehensive implementation:
+
+1. Backend Implementation
+Update Prisma Schema
+prisma
+// schema.prisma
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  role        Role     @default(USER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  assets      Asset[]
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  USER
+}
+
+model Asset {
+  id          String     @id @default(uuid())
+  category    String
+  type        String
+  subType     String?
+  name        String
+  serialNo    String?
+  details     Json?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id])
+
+  @@unique([serialNo], name: "asset_serialNo_unique")
+}
+Auth Service
+typescript
+// services/authService.ts
+import { PrismaClient, User, Role } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+export const registerUser = async (
+  email: string,
+  password: string,
+  role: Role = Role.USER
+): Promise<User> => {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  return prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      role,
+    },
+  });
+};
+
+export const loginUser = async (email: string, password: string): Promise<{ token: string; user: Omit<User, 'password'> }> => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error('User not found');
+
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!isValid) throw new Error('Invalid password');
+
+  const token = jwt.sign(
+    { id: user.id, email: user.email, role: user.role },
+    JWT_SECRET,
+    { expiresIn: '1d' }
+  );
+
+  const { password: _, ...userWithoutPassword } = user;
+
+  return { token, user: userWithoutPassword };
+};
+
+export const verifyToken = (token: string): { id: string; email: string; role: Role } => {
+  return jwt.verify(token, JWT_SECRET) as { id: string; email: string; role: Role };
+};
+Auth Middleware
+typescript
+// middleware/authMiddleware.ts
+import { Request, Response, NextFunction } from 'express';
+import { verifyToken } from '../services/authService';
+
+export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const decoded = verifyToken(token);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+export const authorize = (roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  };
+};
+Update Asset Service with Ownership
+typescript
+// services/assetService.ts
+export const registerAsset = async (assetData: AssetInput, userId?: string) => {
+  // ... existing validation ...
+
+  const asset = await prisma.asset.create({
+    data: {
+      ...assetData,
+      userId: userId, // Assign asset to user
+    },
+  });
+
+  return asset;
+};
+
+export const updateAsset = async (id: string, updateData: Partial<AssetInput>, userId?: string, userRole?: Role) => {
+  // Admin can update any asset
+  if (userRole !== Role.ADMIN) {
+    const asset = await prisma.asset.findUnique({ where: { id } });
+    if (asset?.userId !== userId) {
+      throw new Error('You can only update your own assets');
+    }
+  }
+
+  return prisma.asset.update({
+    where: { id },
+    data: updateData,
+  });
+};
+2. Frontend Implementation
+Auth Slice
+typescript
+// features/auth/authSlice.ts
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Role } from '../../types';
+
+interface AuthState {
+  user: {
+    id: string;
+    email: string;
+    role: Role;
+  } | null;
+  token: string | null;
+}
+
+const initialState: AuthState = {
+  user: null,
+  token: null,
+};
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    setCredentials: (state, action: PayloadAction<{ user: AuthState['user']; token: string }>) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      localStorage.setItem('token', action.payload.token);
+    },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      localStorage.removeItem('token');
+    },
+  },
+});
+
+export const { setCredentials, logout } = authSlice.actions;
+export default authSlice.reducer;
+Auth API
+typescript
+// features/auth/authApi.ts
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+interface RegisterRequest extends LoginRequest {
+  role: 'ADMIN' | 'MANAGER' | 'USER';
+}
+
+interface AuthResponse {
+  user: {
+    id: string;
+    email: string;
+    role: 'ADMIN' | 'MANAGER' | 'USER';
+  };
+  token: string;
+}
+
+export const authApi = createApi({
+  reducerPath: 'authApi',
+  baseQuery: fetchBaseQuery({ baseUrl: '/api/auth' }),
+  endpoints: (builder) => ({
+    login: builder.mutation<AuthResponse, LoginRequest>({
+      query: (credentials) => ({
+        url: 'login',
+        method: 'POST',
+        body: credentials,
+      }),
+    }),
+    register: builder.mutation<AuthResponse, RegisterRequest>({
+      query: (credentials) => ({
+        url: 'register',
+        method: 'POST',
+        body: credentials,
+      }),
+    }),
+    getMe: builder.query<AuthResponse['user'], void>({
+      query: () => 'me',
+    }),
+  }),
+});
+
+export const { useLoginMutation, useRegisterMutation, useGetMeQuery } = authApi;
+Protected Routes Component
+tsx
+// components/Auth/ProtectedRoute.tsx
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAppSelector } from '../../app/hooks';
+import { Role } from '../../types';
+
+interface ProtectedRouteProps {
+  roles?: Role[];
+}
+
+const ProtectedRoute = ({ roles }: ProtectedRouteProps) => {
+  const { user } = useAppSelector((state) => state.auth);
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <Outlet />;
+};
+
+export default ProtectedRoute;
+Update App Routing
+tsx
+// App.tsx
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+import { Role } from './types';
+// ... other imports ...
+
+const App = () => {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        
+        <Route element={<MainLayout />}>
+          {/* Public routes */}
+          <Route index element={<Home />} />
+          
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/assets" element={<AllAssets />} />
+            <Route path="/assets/:id" element={<ViewAsset />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute roles={[Role.USER, Role.MANAGER, Role.ADMIN]} />}>
+            <Route path="/assets/create" element={<CreateAsset />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute roles={[Role.MANAGER, Role.ADMIN]} />}>
+            <Route path="/assets/edit/:id" element={<EditAsset />} />
+          </Route>
+          
+          <Route element={<ProtectedRoute roles={[Role.ADMIN]} />}>
+            <Route path="/admin" element={<AdminDashboard />} />
+          </Route>
+          
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+};
+Role-Based UI Components
+tsx
+// components/Auth/RoleBasedRender.tsx
+import { ReactNode } from 'react';
+import { useAppSelector } from '../../app/hooks';
+import { Role } from '../../types';
+
+interface RoleBasedRenderProps {
+  allowedRoles: Role[];
+  children: ReactNode;
+}
+
+const RoleBasedRender = ({ allowedRoles, children }: RoleBasedRenderProps) => {
+  const { user } = useAppSelector((state) => state.auth);
+  
+  if (!user || !allowedRoles.includes(user.role)) {
+    return null;
+  }
+  
+  return <>{children}</>;
+};
+
+export default RoleBasedRender;
+Example Usage in Asset List
+tsx
+// features/assets/components/AssetList.tsx
+import RoleBasedRender from '../../../components/Auth/RoleBasedRender';
+import { Role } from '../../../types';
+
+// ... in your component ...
+<DataGrid
+  // ... other props ...
+/>
+<RoleBasedRender allowedRoles={[Role.ADMIN, Role.MANAGER]}>
+  <Button 
+    component={Link} 
+    to="/assets/create" 
+    variant="contained" 
+    sx={{ mt: 2 }}
+  >
+    Create New Asset
+  </Button>
+</RoleBasedRender>
+API Service with Auth Token
+typescript
+// services/api.ts
+import axios from 'axios';
+import { store } from '../app/store';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+});
+
+api.interceptors.request.use((config) => {
+  const token = store.getState().auth.token || localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default api;
+3. Access Control Rules
+Role Permissions Summary
+Permission	Admin	Manager	User
+View all assets	✓	✓	✓
+Create assets	✓	✓	✓
+Edit any asset	✓	✓	✗
+Delete assets	✓	✗	✗
+Manage users	✓	✗	✗
+View own assets	✓	✓	✓
+Edit own assets	✓	✓	✓
+Backend Route Protection Examples
+typescript
+// routes/assetRoutes.ts
+import { authenticate, authorize } from '../middleware/authMiddleware';
+import { Role } from '@prisma/client';
+
+router.post('/', authenticate, authorize([Role.ADMIN, Role.MANAGER, Role.USER]), createAsset);
+router.put('/:id', authenticate, authorize([Role.ADMIN, Role.MANAGER]), updateAsset);
+router.delete('/:id', authenticate, authorize([Role.ADMIN]), deleteAsset);
+
+// routes/adminRoutes.ts
+import { authenticate, authorize } from '../middleware/authMiddleware';
+import { Role } from '@prisma/client';
+
+router.get('/users', authenticate, authorize([Role.ADMIN]), getAllUsers);
+router.post('/users', authenticate, authorize([Role.ADMIN]), createUser);
+This implementation provides a comprehensive role-based access control system with:
+
+JWT authentication
+
+Role-based authorization at both frontend and backend
+
+Ownership-based restrictions
+
+Protected routes and UI elements
+
+Proper TypeScript typing for roles
+
+Integration with existing asset management system
+
+////////////////////////////////////////////////////////////
+
+Enhanced Asset Management UI with Tables, Search, and Improved Design
+I'll enhance your asset management system with beautiful tables, powerful search functionality, and an appealing UI using Material UI components.
+
+1. Enhanced Asset Table with Sorting, Pagination, and Actions
+tsx
+// features/assets/components/EnhancedAssetTable.tsx
+import { useState } from 'react';
+import {
+  DataGrid,
+  GridColDef,
+  GridToolbar,
+  GridFilterModel,
+  GridSortModel,
+  GridRowParams,
+  GridActionsCellItem,
+} from '@mui/x-data-grid';
+import {
+  Box,
+  Button,
+  Chip,
+  IconButton,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Visibility as VisibilityIcon,
+  Add as AddIcon,
+  Search as SearchIcon,
+} from '@mui/icons-material';
+import { Link } from 'react-router-dom';
+import { Asset, Role } from '../../../types';
+import { useGetAllAssetsQuery } from '../assetsApi';
+import RoleBasedRender from '../../../components/Auth/RoleBasedRender';
+import { useAppSelector } from '../../../app/hooks';
+
+const statusColors: Record<string, string> = {
+  active: 'success',
+  maintenance: 'warning',
+  retired: 'error',
+  available: 'info',
+};
+
+const EnhancedAssetTable = () => {
+  const theme = useTheme();
+  const { user } = useAppSelector((state) => state.auth);
+  const [searchText, setSearchText] = useState('');
+  const [filterModel, setFilterModel] = useState<GridFilterModel>({ items: [] });
+  const [sortModel, setSortModel] = useState<GridSortModel>([
+    { field: 'createdAt', sort: 'desc' },
+  ]);
+  const [pageSize, setPageSize] = useState(10);
+
+  const { data: assets, isLoading, error } = useGetAllAssetsQuery();
+
+  const filteredAssets = assets?.filter((asset) => {
+    if (!searchText) return true;
+    return (
+      asset.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      asset.serialNo?.toLowerCase().includes(searchText.toLowerCase()) ||
+      asset.type.toLowerCase().includes(searchText.toLowerCase()) ||
+      asset.category.toLowerCase().includes(searchText.toLowerCase())
+    );
+  });
+
+  const columns: GridColDef<Asset>[] = [
+    {
+      field: 'name',
+      headerName: 'Asset Name',
+      flex: 1,
+      renderCell: (params) => (
+        <Typography fontWeight="medium">{params.value}</Typography>
+      ),
+    },
+    {
+      field: 'category',
+      headerName: 'Category',
+      width: 120,
+      renderCell: (params) => (
+        <Chip
+          label={params.value}
+          size="small"
+          sx={{
+            textTransform: 'capitalize',
+            backgroundColor: theme.palette.primary.light,
+            color: theme.palette.primary.contrastText,
+          }}
+        />
+      ),
+    },
+    {
+      field: 'type',
+      headerName: 'Type',
+      width: 120,
+      renderCell: (params) => (
+        <Box sx={{ textTransform: 'capitalize' }}>{params.value}</Box>
+      ),
+    },
+    {
+      field: 'serialNo',
+      headerName: 'Serial No',
+      width: 150,
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 120,
+      renderCell: (params) => (
+        <Chip
+          label={params.value || 'active'}
+          size="small"
+          color={statusColors[params.value] || 'default'}
+          sx={{ textTransform: 'capitalize' }}
+        />
+      ),
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Added On',
+      width: 150,
+      valueFormatter: (params) =>
+        new Date(params.value).toLocaleDateString(),
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      width: 120,
+      getActions: (params: GridRowParams) => [
+        <GridActionsCellItem
+          icon={<VisibilityIcon />}
+          label="View"
+          component={Link}
+          to={`/assets/${params.id}`}
+        />,
+        <RoleBasedRender allowedRoles={[Role.ADMIN, Role.MANAGER]}>
+          <GridActionsCellItem
+            icon={<EditIcon />}
+            label="Edit"
+            component={Link}
+            to={`/assets/edit/${params.id}`}
+            showInMenu
+          />
+        </RoleBasedRender>,
+        <RoleBasedRender allowedRoles={[Role.ADMIN]}>
+          <GridActionsCellItem
+            icon={<DeleteIcon color="error" />}
+            label="Delete"
+            onClick={() => handleDelete(params.id as string)}
+            showInMenu
+          />
+        </RoleBasedRender>,
+      ],
+    },
+  ];
+
+  const handleDelete = (id: string) => {
+    // Implement delete confirmation and logic
+    console.log('Delete asset:', id);
+  };
+
+  if (isLoading) return <div>Loading assets...</div>;
+  if (error) return <div>Error loading assets</div>;
+
+  return (
+    <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={3}
+      >
+        <Typography variant="h5" fontWeight="bold">
+          Asset Inventory
+        </Typography>
+        <RoleBasedRender allowedRoles={[Role.ADMIN, Role.MANAGER, Role.USER]}>
+          <Button
+            component={Link}
+            to="/assets/create"
+            variant="contained"
+            startIcon={<AddIcon />}
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              '&:hover': {
+                backgroundColor: theme.palette.primary.dark,
+              },
+            }}
+          >
+            Add Asset
+          </Button>
+        </RoleBasedRender>
+      </Stack>
+
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search assets..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          InputProps={{
+            startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+              backgroundColor: theme.palette.background.paper,
+            },
+          }}
+        />
+      </Box>
+
+      <Box sx={{ height: 600, width: '100%' }}>
+        <DataGrid
+          rows={filteredAssets || []}
+          columns={columns}
+          pageSize={pageSize}
+          onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          pagination
+          disableSelectionOnClick
+          loading={isLoading}
+          filterModel={filterModel}
+          onFilterModelChange={(newFilterModel) => setFilterModel(newFilterModel)}
+          sortModel={sortModel}
+          onSortModelChange={(newSortModel) => setSortModel(newSortModel)}
+          components={{ Toolbar: GridToolbar }}
+          componentsProps={{
+            toolbar: {
+              showQuickFilter: true,
+              quickFilterProps: { debounceMs: 500 },
+            },
+          }}
+          sx={{
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: theme.palette.grey[100],
+              borderRadius: 1,
+            },
+            '& .MuiDataGrid-cell': {
+              borderBottom: `1px solid ${theme.palette.divider}`,
+            },
+            '& .MuiDataGrid-row:hover': {
+              backgroundColor: theme.palette.action.hover,
+            },
+          }}
+        />
+      </Box>
+    </Paper>
+  );
+};
+
+export default EnhancedAssetTable;
+2. Asset Dashboard with Summary Cards
+tsx
+// pages/Assets/AssetDashboard.tsx
+import { Grid, Paper, Typography, useTheme } from '@mui/material';
+import { useGetAllAssetsQuery } from '../../features/assets/assetsApi';
+import EnhancedAssetTable from '../../features/assets/components/EnhancedAssetTable';
+
+const AssetDashboard = () => {
+  const theme = useTheme();
+  const { data: assets } = useGetAllAssetsQuery();
+
+  const assetCountByCategory = assets?.reduce((acc, asset) => {
+    acc[asset.category] = (acc[asset.category] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return (
+    <Grid container spacing={3}>
+      {/* Summary Cards */}
+      <Grid item xs={12} md={6} lg={3}>
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: 2,
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+          }}
+        >
+          <Typography variant="h6">Total Assets</Typography>
+          <Typography variant="h3" fontWeight="bold">
+            {assets?.length || 0}
+          </Typography>
+        </Paper>
+      </Grid>
+
+      <Grid item xs={12} md={6} lg={3}>
+        <Paper sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" color="textSecondary">
+            Devices
+          </Typography>
+          <Typography variant="h3" fontWeight="bold">
+            {assetCountByCategory?.device || 0}
+          </Typography>
+        </Paper>
+      </Grid>
+
+      <Grid item xs={12} md={6} lg={3}>
+        <Paper sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" color="textSecondary">
+            Furniture
+          </Typography>
+          <Typography variant="h3" fontWeight="bold">
+            {assetCountByCategory?.furniture || 0}
+          </Typography>
+        </Paper>
+      </Grid>
+
+      <Grid item xs={12} md={6} lg={3}>
+        <Paper sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="h6" color="textSecondary">
+            Electronics
+          </Typography>
+          <Typography variant="h3" fontWeight="bold">
+            {assetCountByCategory?.electronics || 0}
+          </Typography>
+        </Paper>
+      </Grid>
+
+      {/* Main Table */}
+      <Grid item xs={12}>
+        <EnhancedAssetTable />
+      </Grid>
+    </Grid>
+  );
+};
+
+export default AssetDashboard;
+3. Advanced Search Component
+tsx
+// components/Search/AdvancedAssetSearch.tsx
+import { useState } from 'react';
+import {
+  Box,
+  Button,
+  Collapse,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Paper,
+  Select,
+  TextField,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import { ExpandMore, ExpandLess, Search as SearchIcon } from '@mui/icons-material';
+
+const AdvancedAssetSearch = ({ onSearch }: { onSearch: (filters: any) => void }) => {
+  const theme = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const [filters, setFilters] = useState({
+    category: '',
+    type: '',
+    status: '',
+    serialNo: '',
+    dateFrom: '',
+    dateTo: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name as string]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch(filters);
+  };
+
+  const handleReset = () => {
+    setFilters({
+      category: '',
+      type: '',
+      status: '',
+      serialNo: '',
+      dateFrom: '',
+      dateTo: '',
+    });
+    onSearch({});
+  };
+
+  return (
+    <Paper sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+        }}
+        onClick={() => setExpanded(!expanded)}
+      >
+        <Typography variant="h6" fontWeight="bold">
+          Advanced Search
+        </Typography>
+        {expanded ? <ExpandLess /> : <ExpandMore />}
+      </Box>
+
+      <Collapse in={expanded}>
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} md={6} lg={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Category</InputLabel>
+                <Select
+                  name="category"
+                  value={filters.category}
+                  onChange={handleChange}
+                  label="Category"
+                >
+                  <MenuItem value="">All Categories</MenuItem>
+                  <MenuItem value="device">Device</MenuItem>
+                  <MenuItem value="furniture">Furniture</MenuItem>
+                  <MenuItem value="electronics">Electronics</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Type</InputLabel>
+                <Select
+                  name="type"
+                  value={filters.type}
+                  onChange={handleChange}
+                  label="Type"
+                  disabled={!filters.category}
+                >
+                  <MenuItem value="">All Types</MenuItem>
+                  {filters.category === 'device' && (
+                    <>
+                      <MenuItem value="computer">Computer</MenuItem>
+                      <MenuItem value="printer">Printer</MenuItem>
+                      <MenuItem value="scanner">Scanner</MenuItem>
+                    </>
+                  )}
+                  {filters.category === 'furniture' && (
+                    <>
+                      <MenuItem value="desk">Desk</MenuItem>
+                      <MenuItem value="chair">Chair</MenuItem>
+                    </>
+                  )}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Status</InputLabel>
+                <Select
+                  name="status"
+                  value={filters.status}
+                  onChange={handleChange}
+                  label="Status"
+                >
+                  <MenuItem value="">All Statuses</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="maintenance">Maintenance</MenuItem>
+                  <MenuItem value="retired">Retired</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={6} lg={3}>
+              <TextField
+                fullWidth
+                size="small"
+                name="serialNo"
+                label="Serial Number"
+                value={filters.serialNo}
+                onChange={handleChange}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                size="small"
+                name="dateFrom"
+                label="From Date"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={filters.dateFrom}
+                onChange={handleChange}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                size="small"
+                name="dateTo"
+                label="To Date"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={filters.dateTo}
+                onChange={handleChange}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  startIcon={<SearchIcon />}
+                  sx={{
+                    backgroundColor: theme.palette.primary.main,
+                    '&:hover': {
+                      backgroundColor: theme.palette.primary.dark,
+                    },
+                  }}
+                >
+                  Search
+                </Button>
+                <Button variant="outlined" onClick={handleReset}>
+                  Reset
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </form>
+      </Collapse>
+    </Paper>
+  );
+};
+
+export default AdvancedAssetSearch;
+4. Asset Detail View with Tabs
+tsx
+// pages/Assets/AssetDetail.tsx
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import {
+  Box,
+  Paper,
+  Tab,
+  Tabs,
+  Typography,
+  Chip,
+  Grid,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  useTheme,
+} from '@mui/material';
+import {
+  Computer as ComputerIcon,
+  Print as PrinterIcon,
+  Chair as ChairIcon,
+  AcUnit as AcIcon,
+} from '@mui/icons-material';
+import { useGetAssetQuery } from '../../features/assets/assetsApi';
+
+const AssetDetail = () => {
+  const theme = useTheme();
+  const { id } = useParams();
+  const [tabValue, setTabValue] = useState(0);
+  const { data: asset, isLoading, error } = useGetAssetQuery(id!);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading asset</div>;
+  if (!asset) return <div>Asset not found</div>;
+
+  const getAssetIcon = () => {
+    switch (asset.type) {
+      case 'computer':
+        return <ComputerIcon sx={{ fontSize: 40 }} color="primary" />;
+      case 'printer':
+        return <PrinterIcon sx={{ fontSize: 40 }} color="secondary" />;
+      case 'chair':
+        return <ChairIcon sx={{ fontSize: 40 }} color="action" />;
+      case 'airconditioner':
+        return <AcIcon sx={{ fontSize: 40 }} color="success" />;
+      default:
+        return <ComputerIcon sx={{ fontSize: 40 }} />;
+    }
+  };
+
+  return (
+    <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={4}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              p: 3,
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 2,
+            }}
+          >
+            {getAssetIcon()}
+            <Typography variant="h5" mt={2} fontWeight="bold">
+              {asset.name}
+            </Typography>
+            <Chip
+              label={asset.category}
+              sx={{
+                mt: 1,
+                textTransform: 'capitalize',
+                backgroundColor: theme.palette.primary.light,
+                color: theme.palette.primary.contrastText,
+              }}
+            />
+            <Typography variant="body2" color="textSecondary" mt={1}>
+              {asset.type} • {asset.subType || 'N/A'}
+            </Typography>
+          </Box>
+
+          <List sx={{ mt: 2 }} component="nav">
+            <ListItem>
+              <ListItemText
+                primary="Serial Number"
+                secondary={asset.serialNo || 'Not specified'}
+              />
+            </ListItem>
+            <Divider />
+            <ListItem>
+              <ListItemText
+                primary="Added On"
+                secondary={new Date(asset.createdAt).toLocaleDateString()}
+              />
+            </ListItem>
+            <Divider />
+            <ListItem>
+              <ListItemText
+                primary="Last Updated"
+                secondary={new Date(asset.updatedAt).toLocaleDateString()}
+              />
+            </ListItem>
+          </List>
+        </Grid>
+
+        <Grid item xs={12} md={8}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            sx={{
+              borderBottom: 1,
+              borderColor: 'divider',
+              mb: 3,
+            }}
+          >
+            <Tab label="Details" />
+            <Tab label="Specifications" />
+            <Tab label="History" />
+            <Tab label="Documents" />
+          </Tabs>
+
+          {tabValue === 0 && (
+            <Box>
+              <Typography variant="h6" mb={2}>
+                Asset Details
+              </Typography>
+              <Typography paragraph>
+                {asset.details?.description ||
+                  'No additional description available for this asset.'}
+              </Typography>
+            </Box>
+          )}
+
+          {tabValue === 1 && (
+            <Box>
+              <Typography variant="h6" mb={2}>
+                Technical Specifications
+              </Typography>
+              <Grid container spacing={2}>
+                {Object.entries(asset.details || {}).map(([key, value]) => (
+                  <Grid item xs={12} sm={6} key={key}>
+                    <Paper
+                      sx={{
+                        p: 2,
+                        borderRadius: 1,
+                        backgroundColor: theme.palette.grey[100],
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle2"
+                        color="textSecondary"
+                        textTransform="uppercase"
+                      >
+                        {key}
+                      </Typography>
+                      <Typography variant="body1">
+                        {String(value) || 'N/A'}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
+
+          {/* Add other tab panels as needed */}
+        </Grid>
+      </Grid>
+    </Paper>
+  );
+};
+
+export default AssetDetail;
+5. Main Layout with Responsive Sidebar
+tsx
+// components/Layout/DashboardLayout.tsx
+import { useState } from 'react';
+import { Outlet, Link } from 'react-router-dom';
+import {
+  AppBar,
+  Box,
+  CssBaseline,
+  Divider,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
+  useTheme,
+} from '@mui/material';
+import {
+  Menu as MenuIcon,
+  Dashboard as DashboardIcon,
+  Devices as DevicesIcon,
+  Chair as FurnitureIcon,
+  Settings as SettingsIcon,
+  People as UsersIcon,
+} from '@mui/icons-material';
+import { Role } from '../../types';
+import RoleBasedRender from '../Auth/RoleBasedRender';
+
+const drawerWidth = 240;
+
+const DashboardLayout = () => {
+  const theme = useTheme();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const navItems = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/', roles: [Role.USER, Role.MANAGER, Role.ADMIN] },
+    { text: 'Assets', icon: <DevicesIcon />, path: '/assets', roles: [Role.USER, Role.MANAGER, Role.ADMIN] },
+    { text: 'Furniture', icon: <FurnitureIcon />, path: '/furniture', roles: [Role.USER, Role.MANAGER, Role.ADMIN] },
+    { text: 'Users', icon: <UsersIcon />, path: '/users', roles: [Role.ADMIN] },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/settings', roles: [Role.ADMIN, Role.MANAGER] },
+  ];
+
+  const drawer = (
+    <Box>
+      <Toolbar sx={{ backgroundColor: theme.palette.primary.main }}>
+        <Typography variant="h6" noWrap color="white">
+          AssetTrack
+        </Typography>
+      </Toolbar>
+      <Divider />
+      <List>
+        {navItems.map((item) => (
+          <RoleBasedRender key={item.text} allowedRoles={item.roles}>
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to={item.path}>
+                <ListItemIcon sx={{ color: theme.palette.primary.main }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          </RoleBasedRender>
+        ))}
+      </List>
+    </Box>
+  );
+
+  return (
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { sm: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            Asset Management System
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+      >
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+        >
+          {drawer}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
+      </Box>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          backgroundColor: theme.palette.grey[50],
+          minHeight: '100vh',
+        }}
+      >
+        <Toolbar />
+        <Outlet />
+      </Box>
+    </Box>
+  );
+};
+
+export default DashboardLayout;
+Key Features Implemented:
+Enhanced Data Table with sorting, filtering, pagination, and row actions
+
+Advanced Search functionality with expandable filters
+
+Dashboard View with summary cards and quick insights
+
+Detailed Asset View with tabbed interface
+
+Responsive Layout with collapsible sidebar
+
+Role-Based UI elements showing/hiding based on permissions
+
+Modern Material UI Design with consistent theming
+
+Interactive Components like chips, cards, and lists for better data visualization
+
+This implementation provides a professional, user-friendly interface for your asset management system with all the requested functionality. The components are reusable and can be easily extended with additional features as needed.
+

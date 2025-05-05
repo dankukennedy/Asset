@@ -1,64 +1,52 @@
-// src/services/asset.service.ts
-import { PrismaClient, Asset, AssetClass, AssetStatus } from '@prisma/client';
-import { CreateAssetDto, UpdateAssetDto } from '../dtos/assetDto';
+import prisma from '../catalyst/prisma';
+import { assetDataSchemaInput } from '../model/assetDataTypes';
 
-const prisma = new PrismaClient();
+export const createAsset = async(input:assetDataSchemaInput) =>{
+   try {
+       const serial = await prisma.asset.findFirst({
+        where:{serialNo:input.serialNo}
+       })
 
-export const createAsset = async (data: CreateAssetDto): Promise<Asset> => {
-  return await prisma.asset.create({
-    data: {
-      ...data,
-      status: data.status || AssetStatus.ACTIVE
-    }
-  });
-};
+       if(serial) throw new Error('Serial Number existed with an asset all ready');
 
-export const getAssets = async (filters?: {
-  class?: AssetClass;
-  status?: AssetStatus;
-  location?: string;
-}): Promise<Asset[]> => {
-  return await prisma.asset.findMany({
-    where: filters
-  });
-};
+       const newAsset = await prisma.asset.create({
+         data: {
+           ...input,
+           details: input.details ? JSON.stringify(input.details) : undefined
+         }
+       })
 
-export const getAssetById = async (id: string): Promise<Asset | null> => {
-  return await prisma.asset.findUnique({
-    where: { id }
-  });
-};
+       return {success:true, message:'Asset created successfully', newAsset}
 
-export const updateAsset = async (
-  id: string,
-  data: UpdateAssetDto
-): Promise<Asset> => {
-  return await prisma.asset.update({
-    where: { id },
-    data
-  });
-};
+   } catch (error) {
+     console.log('Asset cannot be created');
+    throw error
+   }
+}
 
-export const deleteAsset = async (id: string): Promise<Asset> => {
-  return await prisma.asset.delete({
-    where: { id }
-  });
-};
-
-// Specialized queries
-export const getAssetsByClass = async (assetClass: AssetClass): Promise<Asset[]> => {
-  return await prisma.asset.findMany({
-    where: { class: assetClass }
-  });
-};
-
-export const getAssetsDueForMaintenance = async (): Promise<Asset[]> => {
-  return await prisma.asset.findMany({
-    where: { 
-      status: AssetStatus.ACTIVE,
-      warrantyExpiry: {
-        lte: new Date(new Date().setMonth(new Date().getMonth() + 1)) // Expiring in next month
+export const allAssets = async () => {
+    try {
+      const allAsset = await prisma.asset.findMany({
+        orderBy: { createdAt: 'desc' }, // Optional: Sort by latest first
+      });
+  
+      if (allAsset.length === 0) {
+        return { success: true, message: 'No assets found', data: [] };
       }
+  
+      // Parse JSON details if they exist
+      const parsedAssets = allAsset.map(asset => ({
+        ...asset,
+        details: asset.details ? JSON.parse(asset.details as string) : null,
+      }));
+  
+      return {
+        success: true,
+        message: 'Assets retrieved successfully',
+         parsedAssets,
+      };
+    } catch (error) {
+      console.error('Error fetching assets:', error);
+      throw new Error('Failed to retrieve assets');
     }
-  });
-};
+  };

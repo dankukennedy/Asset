@@ -31,43 +31,43 @@ enum AssetClass {
   OTHER
 }
 
-model Asset {
-  id             String      @id @default(uuid())
-  assetTag       String      @unique
-  class          AssetClass
-  status         AssetStatus @default(ACTIVE)
-  model          String
-  manufacturer   String
-  serialNumber   String      @unique
-  purchaseDate   DateTime?
-  purchasePrice  Decimal?
-  warrantyExpiry DateTime?
-  location       String?
-  assignedTo     String?
-  notes          String?
+// model Assets {
+//   id             String      @id @default(uuid())
+//   assetTag       String      @unique
+//   class          AssetClass
+//   status         AssetStatus @default(ACTIVE)
+//   model          String
+//   manufacturer   String
+//   serialNumber   String      @unique
+//   purchaseDate   DateTime?
+//   purchasePrice  Decimal?
+//   warrantyExpiry DateTime?
+//   location       String?
+//   assignedTo     String?
+//   notes          String?
 
-  // Computer-specific fields
-  cpu     String?
-  ram     String?
-  storage String?
-  os      String?
+//   // Computer-specific fields
+//   cpu     String?
+//   ram     String?
+//   storage String?
+//   os      String?
 
-  // Network equipment fields
-  ports      Int?
-  macAddress String?
-  ipAddress  String?
+//   // Network equipment fields
+//   ports      Int?
+//   macAddress String?
+//   ipAddress  String?
 
-  // Printer/Scanner specific
-  consumables String?
-  resolution  String?
+//   // Printer/Scanner specific
+//   consumables String?
+//   resolution  String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
 
-  @@index([assetTag])
-  @@index([serialNumber])
-  @@index([class])
-}
+//   @@index([assetTag])
+//   @@index([serialNumber])
+//   @@index([class])
+// }
 
 model User {
   id         String    @id @default(uuid())
@@ -87,4 +87,96 @@ model User {
   @@index([email])
   @@index([contact])
   @@index([department])
+}
+
+
+model Asset {
+  id          String     @id @default(uuid())
+  category    String
+  type        String
+  subType     String?
+  name        String
+  serialNo    String? 
+  details     Json?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([serialNo], name: "asset_serialNo_unique")
+}
+model Receiving {
+  id           String   @id @default(uuid())
+  manufacturer String
+  vendor       String
+  serialNumber String
+  model        String
+  type         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Allocation {
+  id             String   @id @default(uuid())
+  userDepartment String
+  unit           String
+  serialNumber   String
+  username       String
+  roomNumber     String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Transfer {
+  id             String   @id @default(uuid())
+  userTransferTo String
+  serialNumber   String
+  transferDate   String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model SystemAudit {
+  id           String   @id @default(uuid())
+  serialNumber String
+  status       String
+  remarks      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Decommission {
+  id        String   @id @default(uuid())
+  dateOfDec String
+  reason    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Disposal {
+  id             String   @id @default(uuid())
+  userTransferTo String
+  transferDate   String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Achieve {
+  id           String   @id @default(uuid())
+  serialNumber String
+  years        DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Device {
+  id           String   @id @default(uuid())
+  serialNumber String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

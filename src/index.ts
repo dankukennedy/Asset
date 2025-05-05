@@ -1,6 +1,6 @@
 import express from 'express'
 import env from "../env";
-//import userRoutes from './routes/assetRoutes'
+import assetRoutes from './routes/assetRoutes'
 import userRoutes from './routes/userRoutes';
 
 const app = express()
@@ -8,10 +8,10 @@ const PORT = process.env.PORT || 3000
 
 app.use(express.json())
 
-
-app.use('/api', userRoutes)
+app.use('/api', userRoutes);
+app.use('/api', assetRoutes);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`)
+  console.log(`Server is running on http://localhost:${PORT}`);
 })
 
