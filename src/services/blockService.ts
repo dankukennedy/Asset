@@ -26,7 +26,12 @@ export const createBlock = async(input:blockSchemaInput):Promise<{success:boolea
 export const findBlockId =  async(input:findBlockIdSchemaInput):Promise<{success:boolean; message:string;  block?:Block}> => {
     try {
            const block =  await  prisma.block.findUnique({
-            where:{id:input.id}
+            where:{id:input.id},
+            include:{departments:{
+                select:{
+                    name:true
+                }
+            }}
            })
 
            if(!block) return {success:false, message:'block not found'}
@@ -39,7 +44,14 @@ export const findBlockId =  async(input:findBlockIdSchemaInput):Promise<{success
 
 export const findAllBlocks =  async():Promise<{success:boolean; message:string;  blocks?:Block[]}> => {
     try {
-           const blocks =  await  prisma.block.findMany()
+           const blocks =  await  prisma.block.findMany({
+            include:{departments:{
+                select:{
+                    name:true,
+                },
+                orderBy: { name: 'asc' }
+            }}
+           })
 
            if(!blocks) return {success:false, message:'block not found'}
 
