@@ -658,3 +658,16 @@ export const updateUser = async (input: UpdateUserSchemaInput & {pic?: Express.M
         throw error
     }
   }
+
+  export const  deleteAllUsers = async():Promise<{success:boolean; message:string; users?:User[]}> =>{
+     try {
+        const users = await prisma.user.deleteMany();
+        if(!users){
+            return {success:false, message:'All User not deleted'}
+        }
+
+        return {success:true, message:'All Users Deleted Successfully', users: []}
+     } catch (error) {
+        throw error
+     }
+  }

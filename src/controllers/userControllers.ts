@@ -3,7 +3,7 @@ import type { Prisma } from '@prisma/client'
 type User = Prisma.UserGetPayload<{}>
 import { ZodError } from 'zod'
 import { createUserSchema, emailUserSchema, findUserByIdSchema, loginUserSchema, resetPassUserSchema, tokenUserSchema, updateUserSchema } from '../model/userDataTypes';
-import { activateToken, allUsers, createUser, deleteUserById, findUserById, loginUser, resetActivationToken, resetPassword, resetPasswordWithOTP, updateUser } from '../services/userServices';
+import { activateToken, allUsers, createUser, deleteAllUsers, deleteUserById, findUserById, loginUser, resetActivationToken, resetPassword, resetPasswordWithOTP, updateUser } from '../services/userServices';
 
 // Define a type for the user data that will be returned (excluding sensitive fields)
 type SafeUser = Omit<User, 'password' | 'token' | 'tokenExp'> & {
@@ -209,7 +209,7 @@ export const deleteUserByIdHandler = async(req:Request, res:Response<ApiResponse
             field:err.path.join('.'),
             message: err.message
         }))
-        return  res.status(400).json({success:false, message:'Password reset Validation Failed ', errors:errorMessages})
+        return  res.status(400).json({success:false, message:'Delete User Validation Failed ', errors:errorMessages})
     }if(error instanceof Error){
         return   res.status(400).json({success:false,message:error.message});
     }
@@ -234,7 +234,7 @@ export const findUserByIdHandler = async(req:Request, res:Response<ApiResponse<U
                 field:err.path.join('.'),
                 message: err.message
             }))
-            return  res.status(400).json({success:false, message:'Password reset Validation Failed ', errors:errorMessages})
+            return  res.status(400).json({success:false, message:'Find User Validation Failed ', errors:errorMessages})
         }if(error instanceof Error){
             return   res.status(400).json({success:false,message:error.message});
         }
@@ -258,11 +258,33 @@ export const allUsersHandler = async(req:Request, res:Response<ApiResponse<User[
                 field:err.path.join('.'),
                 message: err.message
             }))
-            return  res.status(400).json({success:false, message:'Password reset Validation Failed ', errors:errorMessages})
+            return  res.status(400).json({success:false, message:'all Users Validation Failed ', errors:errorMessages})
         }if(error instanceof Error){
             return   res.status(400).json({success:false,message:error.message});
         }
         next(error);
     }
 
+}
+
+export const deleteAllUsersHandler = async(req:Request, res:Response<ApiResponse<User[]>>, next:NextFunction) =>{
+    try {
+        const result  = await deleteAllUsers()
+        if(!result.success){
+            const statusCode = result.message.includes('found') ? 404 : 400;
+            return res.status(statusCode).json({success:result.success, message:result.message})
+        }
+        return res.status(201).json({success:true, message:result.message,data:result.users});
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err=>({
+                field:err.path.join('.'),
+                message: err.message
+            }))
+            return  res.status(400).json({success:false, message:'Password reset Validation Failed ', errors:errorMessages})
+        }if(error instanceof Error){
+            return   res.status(400).json({success:false,message:error.message});
+        }
+        next(error);
+    }
 }

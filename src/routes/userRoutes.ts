@@ -1,5 +1,5 @@
 import express from "express";
-import { activateTokenHandler, allUsersHandler, createUserHandler, deleteUserByIdHandler, findUserByIdHandler, loginUserHandler, resetActivationTokenHandler, resetPasswordHandler, resetPasswordWithOTPHandler, updateUserHandler } from "../controllers/userControllers";
+import { activateTokenHandler, allUsersHandler, createUserHandler, deleteAllUsersHandler, deleteUserByIdHandler, findUserByIdHandler, loginUserHandler, resetActivationTokenHandler, resetPasswordHandler, resetPasswordWithOTPHandler, updateUserHandler } from "../controllers/userControllers";
 
 const router = express.Router();
 //Post Requests
@@ -13,5 +13,6 @@ router.patch('/user/updateDetails',  (req, res, next) => { updateUserHandler(req
 router.post('/user/findUser',  (req, res, next) => { findUserByIdHandler(req, res, next).catch(next) });
 router.get('/user/allUser',  (req, res, next) => { allUsersHandler(req, res, next).catch(next) });
 router.delete('/user/deleteUser',  (req, res, next) => { deleteUserByIdHandler(req, res, next).catch(next) });
+router.delete('/user/deleteAllUser',  (req, res, next) => { deleteAllUsersHandler(req, res, next).catch(next) });
 
 export default router;
