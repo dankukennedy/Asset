@@ -77,13 +77,13 @@ export const  createUser = async(input:createUserSchemaInput) =>{
 
     if(emailUser) throw new Error('email already existed');
 
-    const  userContact = await prisma.user.findFirst({
+    const  userContact = await prisma.user.findUnique({
         where:{contact:input.contact}
     })
 
     if(userContact) throw new Error('user with contact already existed');
 
-    const  userUserName = await prisma.user.findFirst({
+    const  userUserName = await prisma.user.findUnique({
         where:{username:input.username}
     })
 

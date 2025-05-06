@@ -4,13 +4,22 @@ import { assetDataSchemaInput, assetUpdateDataSchemaInput, findAssetDataSchemaIn
 import { Asset } from '@prisma/client';
 import { JsonValue } from '@prisma/client/runtime/library';
 
-export const createAsset = async(input: assetDataSchemaInput): Promise<{ success: boolean; message: string; parsedAsset: Asset }> => {
+export const createAsset = async(input: assetDataSchemaInput): Promise<{ success: boolean; message: string; parsedAsset?: Asset }> => {
    try {
        const serial = await prisma.asset.findFirst({
            where: { serialNo: input.serialNo }
        })
+       if(serial) {
+         return {success:false, message:'Serial Number existed with an asset all ready'}
+       };
 
-       if(serial) throw new Error('Serial Number existed with an asset all ready');
+       const embossCode = await prisma.asset.findFirst({
+        where:{embossCode:input.embossCode}
+       })
+       if(embossCode){
+        return {success:false, message:'embossCode existed with an asset all ready'}
+       }
+
 
        const newAsset = await prisma.asset.create({
          data: {

@@ -100,7 +100,7 @@ export const deleteAssetByIdHandler = async(req:Request, res:Response<ApiRespons
             const statusCode = result.message.includes('found') ? 404 : 400;
             return res.status(statusCode).json({success:result.success, message:result.message });
           }
-        res.status(200).json({success:result.success, message:result.message, data:result.deletedAsset});
+        res.status(201).json({success:result.success, message:result.message, data:result.deletedAsset});
     } catch (error) {
         if(error instanceof ZodError){
             const errorMessages = error.errors.map(err=>({

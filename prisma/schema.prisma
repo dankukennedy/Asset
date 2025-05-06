@@ -77,11 +77,11 @@ enum  Role{
 model User {
   id         String    @id @default(uuid())
   fullname   String
-  email      String    @unique
-  password   String
-  username   String
+  email      String
+  password   String 
+  username   String   @unique
   role       Role  @default(USER)
-  contact    String
+  contact    String @unique
   department String
   profile    String?
   isActive   Boolean   @default(false)
@@ -93,6 +93,8 @@ model User {
   @@index([email])
   @@index([contact])
   @@index([department])
+  @@unique([email])
+
 }
 
 model Asset {
@@ -110,6 +112,9 @@ model Asset {
   updatedAt  DateTime @updatedAt
 
   @@unique([serialNo], name: "asset_serialNo_unique")
+  @@unique([embossCode])
+  @@index([embossCode])
+  @@index([serialNo])
 }
 
 model Receiving {
