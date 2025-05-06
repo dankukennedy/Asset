@@ -1,6 +1,7 @@
 import {z} from 'zod'
 
 export const blockSchema = z.object({
+    userId: z.string().nonempty({message:"Id is required"}),
     name: z.string().min(1,{message:"block name cannot be less than a character"}).nonempty(),
 })
 export type blockSchemaInput = z.infer<typeof blockSchema>

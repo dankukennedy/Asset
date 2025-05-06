@@ -9,12 +9,31 @@ export const createDepartment = async(input:deptSchemaInput):Promise<{success:bo
          })
 
          if(findDept) throw new Error('department name already exist');
+         const blockExists = await prisma.block.findUnique({
+            where: { id: input.blockId }
+          });
+          if (!blockExists) {
+            throw new Error(`Block with ID ${input.blockId} not found`);
 
+          }
+          const userExists = await prisma.user.findUnique({
+            where: { id: input.userId }
+          });
+          if (!userExists) {
+            throw new Error(`User with ID ${input.userId} not found`);
+          }
          const department = await prisma.department.create({
-            data:{
-                ...input
-            }
+            data: {
+                name: input.name,
+                blockId: input.blockId,
+                createdById: input.userId
+              },
+              include: {
+                createdBy: true,
+                deptBlock: true
+              }
          })
+
 
         return {success:true, message:'department created successfully', department}
     } catch (error) {

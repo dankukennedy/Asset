@@ -153,7 +153,7 @@ export const loginUser = async(input:loginUserSchemaInput) =>{
             contact: emailUser.contact,
             profile: emailUser.profile,
             role:emailUser.role,
-            department: emailUser.department,
+            userDepartment: emailUser.userDepartment,
             isActive:emailUser.isActive,
             createdAt: emailUser.createdAt,
             updatedAt: emailUser.updatedAt,
@@ -591,7 +591,7 @@ export const updateUser = async (input: UpdateUserSchemaInput & {pic?: Express.M
           ...(input.email && { email: input.email }),
           ...(input.contact && { contact: input.contact }),
           ...(input.fullname && { fullname: input.fullname }),
-          ...(input.department && { department: input.department }),
+          ...(input.userDepartment && { userDepartment: input.userDepartment }),
 
           // You can choose which URL to store in the database
           // Here we're storing both, adjust as needed
@@ -636,7 +636,15 @@ export const updateUser = async (input: UpdateUserSchemaInput & {pic?: Express.M
   export const findUserById = async(input:findUserByIdSchemaInput):Promise<{success:boolean; message:string; user?:User}> =>{
     try {
          const user = await prisma.user.findUnique({
-            where:{id:input.id}
+            where:{id:input.id},
+             include:{ 
+                 block:{
+                     select:{
+                         departments:true,
+                     },
+                 },
+             asset:true
+           }
          })
          if(!user){
             return {success:false, message:'No user associated with the Id'}

@@ -12,7 +12,7 @@
     username:z.string().min(4,{message:"username cannot be less than 4 characters"}).max(30,{message:"username must not be more than 30 characters"}).nonempty({message:" username cannot be left empty"}),
     contact:z.string().min(10,{message:"contact must not be less than 10 figures"}).max(13,{message:"contact cannot be more than 13 figures including 233"}).nonempty({message:"contact cannot be left empty"})
     .regex(/^[0-9]+$/, {message:"contact can only contain digits"}),
-    department:z.string().nonempty({message:"department cannot be left empty"})
+    userDepartment:z.string().nonempty({message:"department cannot be left empty"})
  })
  export type createUserSchemaInput = z.infer<typeof createUserSchema >
 
@@ -69,7 +69,7 @@ export const updateUserSchema = z.object({
      .max(13, {message: 'Contact must be 13 digits'})
      .regex(/^\d+$/, {message: 'Contact must contain only digits'}).optional(),
      role: z.string().min(5,{message:"role cannot be less than 4 characters"}).max(7).optional(),
-     department:z.string().min(2,{message:'department must be more than two characters'}).max(100,{message:'must not be more than 100 characters'}).optional(),
+     userDepartment:z.string().min(2,{message:'department must be more than two characters'}).max(100,{message:'must not be more than 100 characters'}).optional(),
  });
  export type UpdateUserSchemaInput = Omit<z.infer<typeof updateUserSchema>, 'pic'>
 

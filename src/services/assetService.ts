@@ -19,13 +19,23 @@ export const createAsset = async(input: assetDataSchemaInput): Promise<{ success
        if(embossCode){
         return {success:false, message:'embossCode existed with an asset all ready'}
        }
+       const userExists = await prisma.user.findUnique({
+        where: { id: input.userId }
+      });
+      if (!userExists) {
+        throw new Error(`User with ID ${input.userId} not found`);
+      }
 
-
+      const { userId, details, ...restInput } = input;
        const newAsset = await prisma.asset.create({
          data: {
-           ...input,
-           details: input.details ? JSON.stringify(input.details) : undefined
-         }
+          ...restInput ,
+           details: input.details ? JSON.stringify(input.details) : undefined,
+            createBy:{
+              connect:{id:input.userId}
+            }
+         },
+         include:{createBy:true}
        })
         // Parse JSON details if they exist
         const parsedAsset = {
@@ -43,7 +53,8 @@ export const createAsset = async(input: assetDataSchemaInput): Promise<{ success
 export const allAssets = async (): Promise<{success: boolean; message: string; parsedAssets: Asset[];}> => {
     try {
       const allAsset = await prisma.asset.findMany({
-        orderBy: { createdAt: 'desc' }, // Optional: Sort by latest first
+        orderBy: { createdAt: 'desc' },
+         // Optional: Sort by latest first
       });
 
       if (allAsset.length === 0) {
@@ -64,24 +75,26 @@ export const allAssets = async (): Promise<{success: boolean; message: string; p
 
   export const findAssetById = async(input:findAssetDataSchemaInput):Promise<{ success: boolean; message: string;  parsedAsset?: Asset & { details: JsonValue | null };}> => {
     try {
-      const asset = await prisma.asset.findUnique({
-        where: { id: input.id },
+      const assets = await prisma.asset.findUnique({
+        where: { id: input.id }, 
+        include: { createBy:true }
+  
       });
 
-      if (!asset) {
+      if (!assets) {
         return { success: false, message: 'No assets found with specified id'  };
       }
 
       let parsedDetails: unknown = null;
-      if (asset.details) {
+      if (assets.details) {
         try {
-          parsedDetails = JSON.parse(asset.details as string);
+          parsedDetails = JSON.parse(assets.details as string);
         } catch (parseError) {
           console.error('Failed to parse asset details:', parseError);
           parsedDetails = { error: 'Invalid JSON format in details' };
         }
       }
-        const parsedAsset = { ...asset, details: parsedDetails  as JsonValue  };
+        const parsedAsset = { ...assets, details: parsedDetails  as JsonValue  };
 
         return {success: true, message: 'Asset retrieved successfully', parsedAsset };
     } catch (error) {

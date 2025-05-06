@@ -11,9 +11,19 @@ export const createBlock = async(input:blockSchemaInput):Promise<{success:boolea
         if(block) throw new Error('block entered already existed');
 
         const passBlock = await prisma.block.create({
-            data:{
-                ...input
-            }
+            data: {
+                name: input.name,
+                createdBy: {
+                  connect: {
+                    id: input.userId
+                  }
+                }
+              },
+              include: {
+                createdBy: true
+              }
+
+
         })
 
     return {success:true, message:'block created successfully', passBlock}
