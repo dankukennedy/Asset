@@ -37,7 +37,7 @@ export const findBlockId =  async(input:findBlockIdSchemaInput):Promise<{success
            if(!block) return {success:false, message:'block not found'}
 
         return {success:true, message:'block find successfully', block}
-    } catch (error) {
+    } catch (error:unknown) {
         throw error
     }
 }
@@ -56,7 +56,7 @@ export const findAllBlocks =  async():Promise<{success:boolean; message:string; 
            if(!blocks) return {success:false, message:'block not found'}
 
         return {success:true, message:'block find successfully', blocks}
-    } catch (error) {
+    } catch (error:unknown) {
         throw error
     }
 }
@@ -76,7 +76,7 @@ export const updateBlockById =  async(input:updateBlockSchemaInput):Promise<{suc
             }
          })
         return { success:true, message:'block updated successfully', updateBock}
-    } catch (error) {
+    } catch (error:unknown) {
         throw error
     }
 }
@@ -94,7 +94,26 @@ export const deleteBlockById =  async(input:findBlockIdSchemaInput):Promise<{suc
             where:{id:input.id}
           })
         return { success:true, message:'Block deleted successfully',block}
-    } catch (error) {
+    } catch (error:unknown) {
+        throw error
+    }
+}
+
+export const deleteAllBlocks = async():Promise<{success: boolean; message: string;  blocks?: Block[];}> => {
+    try {
+      const blocks =  await prisma.block.deleteMany();
+      if(blocks.count === 0)
+        {
+             return{success:false, message:'No block records to be deleted'}
+         }
+
+      if(!blocks)
+        { 
+            return{success:false, message:' blocks to be deleted'}
+        }
+
+        return {success: true, message: 'All blocks deleted successfully', blocks: []}
+    } catch (error:unknown) {
         throw error
     }
 }

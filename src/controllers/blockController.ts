@@ -2,7 +2,7 @@ import { Request,Response, NextFunction } from "express";
 import { Prisma } from '@prisma/client'
 import { ZodError} from 'zod'
 import { blockSchema, findBlockIdSchema, updateBlockSchema} from "../model/blockDataTypes";
-import { createBlock, deleteBlockById, findAllBlocks, findBlockId, updateBlockById } from "../services/blockService";
+import { createBlock, deleteAllBlocks, deleteBlockById, findAllBlocks, findBlockId, updateBlockById } from "../services/blockService";
 
 
 type Block = Prisma.BlockGetPayload<{}>
@@ -136,5 +136,30 @@ export const deleteBlockByIdHandler = async(req:Request, res:Response<ApiRespons
             return  res.status(400).json({success:false, message:error.message});
         }
         next(error);
+
+    }
+}
+
+
+export const deleteAllBlocksHandler  = async(req:Request, res:Response<ApiResponse<Block[]>>, next:NextFunction) =>{
+        try {
+              const result = await deleteAllBlocks();
+            if(!result.success){
+                const statusCode = result.message.includes('found') ? 404 : 400;
+                return res.status(statusCode).json({success:false, message:result.message})
+               }
+               return res.status(201).json({success:result.success, message:result.message, data:result.blocks})
+        } catch (error) {
+            if(error instanceof ZodError){
+                const errorMessages = error.errors.map(err =>({
+                    field: err.path.join('.'),
+                    message: err.message
+                }))
+                return  res.status(400).json({success:false, message:'delete Block validation Fail', errors: errorMessages});
+            }
+            if(error instanceof Error){
+                return  res.status(400).json({success:false, message:error.message});
+            }
+            next(error);
     }
 }

@@ -2,7 +2,7 @@ import { Request,Response, NextFunction } from "express";
 import { Prisma } from '@prisma/client'
 import { ZodError} from 'zod'
 import { deptSchema, findDeptIdSchema, updateDeptSchema } from "../model/deptDataTypes";
-import { allDepartment, createDepartment, deleteDepartment, findDepartmentById, updateDepartment } from "../services/deptService";
+import { allDepartment, createDepartment, deleteAllDepartment, deleteDepartment, findDepartmentById, updateDepartment } from "../services/deptService";
 
 type Department = Prisma.DepartmentGetPayload<{}>
 
@@ -141,4 +141,27 @@ export const deleteDepartmentHandler = async(req:Request, res:Response<ApiRespon
     }
     next(error);
   }
+}
+
+export const deleteAllDepartmentHandler = async(req:Request, res:Response<ApiResponse<Department[]>>, next:NextFunction) =>{
+    try {
+        const result = await deleteAllDepartment()
+        if(!result.success){
+            const statusCode = result.message.includes('found') ? 404 : 400;
+            return res.status(statusCode).json({success:result.success, message:result.message})
+          }
+         return  res.status(201).json({success:result.success, message:result.message, data:result.departments})
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err =>({
+                field: err.path.join('.'),
+                message: err.message
+            }))
+            return res.status(400).json({success:false, message:'delete Department validation Fail', errors: errorMessages});
+        }
+        if(error instanceof Error){
+           return res.status(400).json({success:false, message:error.message});
+        }
+        next(error);
+    }
 }

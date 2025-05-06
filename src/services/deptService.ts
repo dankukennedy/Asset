@@ -109,11 +109,15 @@ export const deleteDepartment = async(input:findDeptIdSchemaInput):Promise<{succ
 export const deleteAllDepartment = async():Promise<{success:boolean; message:string; departments?:Department[]}> => {
      try {
          const departments = await prisma.department.deleteMany();
+
+         if(departments.count ===0 ){
+            return {success:false, message:'No Department records to be deleted'}
+         }
          if(!departments) {
             return {success:false, message:'All Department Not Deleted'}
          }
 
-         return{ success:true, message}
+         return{ success:true, message:'All Department Deleted Successfully', departments:[]}
      } catch (error:unknown) {
         throw error
      }

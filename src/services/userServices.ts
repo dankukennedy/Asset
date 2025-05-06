@@ -662,6 +662,10 @@ export const updateUser = async (input: UpdateUserSchemaInput & {pic?: Express.M
   export const  deleteAllUsers = async():Promise<{success:boolean; message:string; users?:User[]}> =>{
      try {
         const users = await prisma.user.deleteMany();
+
+        if(users.count === 0 ){
+            return { success:false, message:'No User records to be created'}
+        }
         if(!users){
             return {success:false, message:'All User not deleted'}
         }

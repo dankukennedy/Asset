@@ -177,8 +177,25 @@ export const allAssets = async (): Promise<{success: boolean; message: string; p
           details: parsedDetails,
         },
       };
-    } catch (error) {
+    } catch (error:unknown) {
       console.error('Error updating asset:', error);
       throw error;
     }
   };
+
+  export const deleteAllAsset = async():Promise<{success: boolean; message: string; assets?: Asset[];}> => {
+      try {
+          const assets = await prisma.asset.findMany();
+          if(!assets){
+            return { success:false, message:'All Assets Not Deleted'}
+          }
+          if(assets.length === 0){
+            return { success:false, message:'No Assets to be Deleted'}
+          }
+
+          await prisma.asset.deleteMany();
+          return { success:true, message:"All Assets Deleted Successfully", assets:[]}
+      } catch (error:unknown) {
+        throw error;
+      }
+  }

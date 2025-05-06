@@ -1,6 +1,6 @@
 import { Request,Response, NextFunction } from "express";
 import { assetDataSchema, assetDataSchemaInput, assetUpdateDataSchema, findAssetDataSchema } from "../model/assetDataTypes"
-import { allAssets, createAsset, deleteAssetById, findAssetById, updateAssetById } from "../services/assetService";
+import { allAssets, createAsset, deleteAllAsset, deleteAssetById, findAssetById, updateAssetById } from "../services/assetService";
 import { Prisma } from '@prisma/client'
 import { ZodError ,z} from 'zod'
 
@@ -125,6 +125,30 @@ export const updateAssetByIdHandler =  async(req:Request, res:Response<ApiRespon
       return res.status(statusCode).json({success:result.success ,message: result.message });
     }
     return res.status(201).json({ success: true, message: result.message, data: result.updatedAsset });
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err=>({
+                field: err.path.join('.'),
+                message:err.message
+            }));
+          return  res.status(400).json({success:false, message:'Cannot update an Asset ', errors:errorMessages});
+
+        }
+         if(error instanceof Error){
+           return res.status(400).json({success:false, message:error.message});
+         }
+         next(error);
+    }
+}
+
+export const deleteAllAssetHandler =  async(req:Request, res:Response<ApiResponse<Asset[]>>, next:NextFunction) =>{
+    try {
+        const result = await deleteAllAsset();
+        if (!result.success) {
+            const statusCode = result.message.includes('found') ? 404 : 400;
+            return res.status(statusCode).json({success:result.success ,message: result.message });
+          }
+          return res.status(201).json({ success: true, message: result.message, data: result.assets });
     } catch (error) {
         if(error instanceof ZodError){
             const errorMessages = error.errors.map(err=>({
