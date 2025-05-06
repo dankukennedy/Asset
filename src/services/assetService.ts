@@ -149,6 +149,8 @@ export const allAssets = async (): Promise<{success: boolean; message: string; p
           ...(input.serialNo && { serialNo: input.serialNo }),
           ...(input.subType && { subType: input.subType }),
           ...(input.type && { type: input.type }),
+          ...(input.model && { model: input.model }),
+          ...(input.embossCode && { embossCode: input.embossCode }),
           ...(input.category && { category: input.category }),
           // include other fields similarly
           ...(input.details && { details: JSON.stringify(input.details) }),

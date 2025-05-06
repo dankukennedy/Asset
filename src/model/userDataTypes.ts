@@ -72,3 +72,8 @@ export const updateUserSchema = z.object({
      department:z.string().min(2,{message:'department must be more than two characters'}).max(100,{message:'must not be more than 100 characters'}).optional(),
  });
  export type UpdateUserSchemaInput = Omit<z.infer<typeof updateUserSchema>, 'pic'>
+
+ export const findUserByIdSchema = z.object({
+   id: z.string().nonempty({message:'User id cannot be left empty'}),
+ })
+ export type  findUserByIdSchemaInput = z.infer<typeof findUserByIdSchema>

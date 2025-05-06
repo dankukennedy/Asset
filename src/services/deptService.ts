@@ -45,7 +45,7 @@ export  const findDepartmentById = async(input:findDeptIdSchemaInput):Promise<{s
     }
 }
 
-export const allDepartment =async():Promise<{success:boolean; message:string; departments?:Department[]}> => {
+export const allDepartment = async():Promise<{success:boolean; message:string; departments?:Department[]}> => {
     try {
          const departments = await prisma.department.findMany({
 
@@ -84,5 +84,24 @@ export const updateDepartment = async(input:updateDeptSchemaInput):Promise<{succ
         return { success:true, message:'department updated successfully ',department}
     } catch (error) {
     throw error
+    }
+}
+
+export const deleteDepartment = async(input:findDeptIdSchemaInput):Promise<{success:boolean; message:string; department?:Department}> => {
+    try {
+         const findDept = await prisma.department.findUnique({
+            where:{id:input.id}
+         })
+         if(!findDept){
+            return { success:false, message:' no department found with Id'}
+         }
+
+         const department = await prisma.department.delete({
+            where:{id:input.id}
+         })
+
+        return {success:true, message:'department deleted successfully',department}
+    } catch (error) {
+        throw error
     }
 }

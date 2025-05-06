@@ -80,3 +80,21 @@ export const updateBlockById =  async(input:updateBlockSchemaInput):Promise<{suc
         throw error
     }
 }
+
+export const deleteBlockById =  async(input:findBlockIdSchemaInput):Promise<{success:boolean; message:string;  block?:Block}> => {
+
+    try {
+        const findBlock = await prisma.block.findUnique({
+            where:{id:input.id}
+        })
+         if(!findBlock) {
+            return {success:false, message:'no block Id found with specific'}
+         }
+          const block = await prisma.block.delete({
+            where:{id:input.id}
+          })
+        return { success:true, message:'Block deleted successfully',block}
+    } catch (error) {
+        throw error
+    }
+}

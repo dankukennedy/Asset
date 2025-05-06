@@ -3,9 +3,10 @@ import 'dotenv/config';
 import  transporter from '../catalyst/gmail'
 import prisma from '../catalyst/prisma';
 import CryptoJS from 'crypto-js';
-import { createUserSchemaInput, emailUserSchemaInput, loginUserSchemaInput, resetPassUserSchemaInput, tokenUserSchemaInput, UpdateUserSchemaInput } from '../model/userDataTypes';
+import { createUserSchemaInput, emailUserSchemaInput, findUserByIdSchemaInput, loginUserSchemaInput, resetPassUserSchemaInput, tokenUserSchemaInput, UpdateUserSchemaInput } from '../model/userDataTypes';
 import { SafeUser } from '../types/types';
 import { uploadImage } from '../utilities/fileUploads'
+import {User} from '@prisma/client'
 import client from '../catalyst/sms';
 
 // Function for token generation
@@ -606,5 +607,54 @@ export const updateUser = async (input: UpdateUserSchemaInput & {pic?: Express.M
     } catch(error) {
       console.error('User Updating error:', error);
       throw error;
+    }
+  }
+
+  export const deleteUserById = async(input:findUserByIdSchemaInput):Promise<{success:boolean; message:string; user?:User}> =>{
+    try {
+         const findUser =  await prisma.user.findUnique({
+            where:{id:input.id}
+         })
+
+         if(!findUser){
+            return {success:false, message:'No user  associated with the Id'}
+         }
+
+         const user =  await prisma.user.delete({
+            where:{id:input.id}
+         })
+         if(!user){
+            return {success:false, message:'user cannot be deleted'}
+         }
+
+        return {success:true, message:' users deleted successfully ',user}
+    } catch (error) {
+        throw error
+    }
+  }
+
+  export const findUserById = async(input:findUserByIdSchemaInput):Promise<{success:boolean; message:string; user?:User}> =>{
+    try {
+         const user = await prisma.user.findUnique({
+            where:{id:input.id}
+         })
+         if(!user){
+            return {success:false, message:'No user associated with the Id'}
+         }
+
+        return {success:true, message:' user successfully fetch',user}
+    } catch (error) {
+        throw error
+    }
+  }
+  export const allUsers = async():Promise<{success:boolean; message:string; users?:User[]}> =>{
+    try {
+          const users = await prisma.user.findMany();
+          if(!users) {
+            return {success:false, message:'Cannot find users'}
+          }
+        return {success:true, message:'all users successfully fetch',users}
+    } catch (error) {
+        throw error
     }
   }
