@@ -187,7 +187,7 @@ model Allocation {
   id             String     @id @default(uuid())
   userDepartment Department @relation("allocateDepartment", fields: [userDeptId], references: [id])
   userDeptId     String
-  unit           String
+  unit           String 
   asset          Asset      @relation("allocateAsset", fields: [assetId], references: [id])
   assetId        String
   username       AssetUser  @relation("allocateAssetUser", fields: [usernameId], references: [id])
@@ -196,6 +196,8 @@ model Allocation {
   labelId        String
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
+
+  @@index([unit])
 }
 
 model Transfer {

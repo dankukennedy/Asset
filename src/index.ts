@@ -6,6 +6,7 @@ import  blockRoutes from './routes/blockRoutes'
 import  departmentRoutes from './routes/deptRoutes'
 import  assetUserRoutes from './routes/assetUserRoutes'
 import  roomRoutes from './routes/roomRoutes'
+import  allocationRoutes from './routes/allocationRoutes'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -18,6 +19,7 @@ app.use('/api', blockRoutes);
 app.use('/api', departmentRoutes);
 app.use('/api', assetUserRoutes);
 app.use('/api', roomRoutes);
+app.use('/api', allocationRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
