@@ -1,4 +1,4 @@
-import { unknown } from 'zod';
+
 import prisma from '../catalyst/prisma';
 import { assetDataSchemaInput, assetUpdateDataSchemaInput, findAssetDataSchemaInput } from '../model/assetDataTypes';
 import { Asset } from '@prisma/client';
@@ -44,7 +44,7 @@ export const createAsset = async(input: assetDataSchemaInput): Promise<{ success
         };
        return {success:true, message:'Asset created successfully', parsedAsset}
 
-   } catch (error) {
+   } catch (error:unknown) {
      console.log('Asset cannot be created');
     throw error
    }

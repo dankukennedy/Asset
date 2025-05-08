@@ -76,23 +76,28 @@ enum Role {
 }
 
 model User {
-  id             String       @id @default(uuid())
+  id             String         @id @default(uuid())
   fullname       String
   email          String
   password       String
-  username       String       @unique
-  role           Role         @default(USER)
-  contact        String       @unique
+  username       String         @unique
+  role           Role           @default(USER)
+  contact        String         @unique
   userDepartment String
   profile        String?
-  isActive       Boolean      @default(false)
-  token          String?      @unique
+  isActive       Boolean        @default(false)
+  token          String?        @unique
   tokenExp       DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  department     Department[] @relation("createdUser")
-  asset          Asset[]      @relation("createdUser")
-  block          Block[]      @relation("createdUser")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  department     Department[]   @relation("departmentUser")
+  asset          Asset[]        @relation("assetUser")
+  block          Block[]        @relation("blockUser")
+  report         Report[]       @relation("reportUser")
+  achieve        Achieve[]      @relation("achieveUser")
+  decommission   Decommission[] @relation("decommissionUser")
+  disposal       Disposal[]     @relation("disposalUser")
+  rooms          Rooms[]        @relation("room")
 
   @@unique([email])
   @@index([email])
@@ -101,7 +106,7 @@ model User {
 }
 
 model Asset {
-  id          String   @id @default(uuid())
+  id          String        @id @default(uuid())
   category    String
   type        String
   subType     String?
@@ -111,10 +116,12 @@ model Asset {
   embossCode  String?
   serialNo    String?
   details     Json?
-  createBy    User     @relation("createdUser", fields: [createdById], references: [id])
+  createBy    User          @relation("assetUser", fields: [createdById], references: [id])
   createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  systemAudit SystemAudit[] @relation("auditAsset")
+  allocation  Allocation[]  @relation("allocateAsset")
 
   @@unique([serialNo], name: "asset_serialNo_unique")
   @@unique([embossCode])
@@ -128,7 +135,7 @@ model Block {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   departments Department[] @relation("deptBlock")
-  createdBy   User         @relation("createdUser", fields: [createdById], references: [id])
+  createdBy   User         @relation("blockUser", fields: [createdById], references: [id])
   createdById String
 
   @@unique([name])
@@ -136,86 +143,114 @@ model Block {
 }
 
 model Department {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
-  deptBlock   Block    @relation("deptBlock", fields: [blockId], references: [id])
+  deptBlock   Block        @relation("deptBlock", fields: [blockId], references: [id])
   blockId     String
-  createdBy   User     @relation("createdUser", fields: [createdById], references: [id])
+  createdBy   User         @relation("departmentUser", fields: [createdById], references: [id])
   createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  assetUsers  AssetUser[]  @relation("assetDepartment")
+  allocation  Allocation[] @relation("allocateDepartment")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   @@unique([name])
   @@index([name])
 }
 
-// model Receiving {
-//   id           String   @id @default(uuid())
-//   manufacturer String
-//   vendor       String
-//   serialNumber String
-//   model        String
-//   type         String
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-// }
+model AssetUser {
+  id             String       @id @default(uuid())
+  name           String
+  userDepartment Department   @relation("assetDepartment", fields: [userDeptId], references: [id])
+  userDeptId     String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  transfer       Transfer[]   @relation("transferAsset")
+  allocation     Allocation[] @relation("allocateAssetUser")
 
-// model Allocation {
-//   id             String   @id @default(uuid())
-//   userDepartment String
-//   unit           String
-//   serialNumber   String
-//   username       String
-//   roomNumber     String
-//   createdAt      DateTime @default(now())
-//   updatedAt      DateTime @updatedAt
-// }
+  @@unique([name])
+}
 
-// model Transfer {
-//   id             String   @id @default(uuid())
-//   userTransferTo String
-//   serialNumber   String
-//   transferDate   String
-//   createdAt      DateTime @default(now())
-//   updatedAt      DateTime @updatedAt
-// }
+model Rooms {
+  id          String       @id @default(uuid())
+  label       String
+  createdBy   User         @relation("room", fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  allocation  Allocation[] @relation("allocateRooms")
 
-// model SystemAudit {
-//   id           String   @id @default(uuid())
-//   serialNumber String
-//   status       String
-//   remarks      String
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-// }
+  @@unique([label])
+}
 
-// model Decommission {
-//   id        String   @id @default(uuid())
-//   dateOfDec String
-//   reason    String
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
+model Allocation {
+  id             String     @id @default(uuid())
+  userDepartment Department @relation("allocateDepartment", fields: [userDeptId], references: [id])
+  userDeptId     String
+  unit           String
+  asset          Asset      @relation("allocateAsset", fields: [assetId], references: [id])
+  assetId        String
+  username       AssetUser  @relation("allocateAssetUser", fields: [usernameId], references: [id])
+  usernameId     String
+  label          Rooms      @relation("allocateRooms", fields: [labelId], references: [id])
+  labelId        String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
 
-// model Disposal {
-//   id             String   @id @default(uuid())
-//   userTransferTo String
-//   transferDate   String
-//   createdAt      DateTime @default(now())
-//   updatedAt      DateTime @updatedAt
-// }
+model Transfer {
+  id               String    @id @default(uuid())
+  userTransferTo   AssetUser @relation("transferAsset", fields: [userTransferToId], references: [id])
+  userTransferToId String
+  transferDate     String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
 
-// model Achieve {
-//   id           String   @id @default(uuid())
-//   serialNumber String
-//   years        DateTime
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-// }
+model SystemAudit {
+  id        String   @id @default(uuid())
+  status    String
+  remarks   String
+  audit     Asset    @relation("auditAsset", fields: [auditId], references: [id])
+  auditId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
 
-// model Device {
-//   id           String   @id @default(uuid())
-//   serialNumber String
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-// }
+model Decommission {
+  id          String   @id @default(uuid())
+  dateOfDec   String
+  reason      String
+  createdBy   User     @relation("decommissionUser", fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Disposal {
+  id             String   @id @default(uuid())
+  userTransferTo String
+  transferDate   String
+  createdBy      User     @relation("disposalUser", fields: [createdById], references: [id])
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Achieve {
+  id          String   @id @default(uuid())
+  createdBy   User     @relation("achieveUser", fields: [createdById], references: [id])
+  createdById String
+  years       DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  name        String
+  createdBy   User     @relation("reportUser", fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

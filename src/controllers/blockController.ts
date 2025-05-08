@@ -24,11 +24,12 @@ export const createBlockHandler =  async(req:Request, res:Response<ApiResponse<B
    try {
       const validate = blockSchema.parse(req.body);
       const result  = await  createBlock(validate);
-      if(!result){
-        return res.status(200).json({success: true, message: 'No block found',data:result['']  });
+      if(!result.success){
+        const statusCode = result.message.includes('found') ? 404 : 400;
+        return res.status(statusCode).json({success:result.success, message:result.message})
       }
-      return res.status(201).json({success:result.success, message:result.message, data:result.passBlock})
-   } catch (error) {
+     return  res.status(201).json({success:result.success, message:result.message, data:result.passBlock})
+ } catch (error) {
     if(error instanceof ZodError){
         const errorMessages = error.errors.map(err =>({
             field: err.path.join('.'),

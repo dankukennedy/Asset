@@ -119,7 +119,7 @@ export const deleteAllBlocks = async():Promise<{success: boolean; message: strin
 
       if(!blocks)
         { 
-            return{success:false, message:' blocks to be deleted'}
+            return{success:false, message:' No blocks to be deleted'}
         }
 
         return {success: true, message: 'All blocks deleted successfully', blocks: []}

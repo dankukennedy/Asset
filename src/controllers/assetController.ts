@@ -2,7 +2,7 @@ import { Request,Response, NextFunction } from "express";
 import { assetDataSchema, assetDataSchemaInput, assetUpdateDataSchema, findAssetDataSchema } from "../model/assetDataTypes"
 import { allAssets, createAsset, deleteAllAsset, deleteAssetById, findAssetById, updateAssetById } from "../services/assetService";
 import { Prisma } from '@prisma/client'
-import { ZodError ,z} from 'zod'
+import { ZodError} from 'zod'
 
 type Asset = Prisma.AssetGetPayload<{}>
 
