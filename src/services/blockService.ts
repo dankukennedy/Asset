@@ -41,7 +41,7 @@ export const findBlockId =  async(input:findBlockIdSchemaInput):Promise<{success
                 select:{
                     name:true
                 }
-            }}
+            }},
            })
 
            if(!block) return {success:false, message:'block not found'}
@@ -75,7 +75,7 @@ export const findAllBlocks =  async():Promise<{success:boolean; message:string; 
 export const updateBlockById =  async(input:updateBlockSchemaInput):Promise<{success:boolean; message:string;  updateBock?:Block}> => {
     try {
          const findBlock = await prisma.block.findUnique({
-            where:{id:input.id}
+            where:{id:input.id},include:{departments:true}
          })
          if(!findBlock) return {success:false,message:'block cannot be found with id'}
 
@@ -83,7 +83,7 @@ export const updateBlockById =  async(input:updateBlockSchemaInput):Promise<{suc
             where:{id:input.id},
             data:{
                 ...(input.name && { name: input.name }),
-            }
+            },include:{departments:{include:{deptBlock:{select:{name:true}}}}}
          })
         return { success:true, message:'block updated successfully', updateBock}
     } catch (error:unknown) {
@@ -95,7 +95,7 @@ export const deleteBlockById =  async(input:findBlockIdSchemaInput):Promise<{suc
 
     try {
         const findBlock = await prisma.block.findUnique({
-            where:{id:input.id}
+            where:{id:input.id},include:{departments:true}
         })
          if(!findBlock) {
             return {success:false, message:'no block Id found with specific'}

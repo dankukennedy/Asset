@@ -98,6 +98,8 @@ model User {
   decommission   Decommission[] @relation("decommissionUser")
   disposal       Disposal[]     @relation("disposalUser")
   rooms          Rooms[]        @relation("room")
+  transfer       Transfer[]     @relation("transferUser")
+  systemAudit    SystemAudit []  @relation("auditUser")
 
   @@unique([email])
   @@index([email])
@@ -122,6 +124,7 @@ model Asset {
   updatedAt   DateTime      @updatedAt
   systemAudit SystemAudit[] @relation("auditAsset")
   allocation  Allocation[]  @relation("allocateAsset")
+
 
   @@unique([serialNo], name: "asset_serialNo_unique")
   @@unique([embossCode])
@@ -187,9 +190,9 @@ model Allocation {
   id             String     @id @default(uuid())
   userDepartment Department @relation("allocateDepartment", fields: [userDeptId], references: [id])
   userDeptId     String
-  unit           String 
+  unit           String
   asset          Asset      @relation("allocateAsset", fields: [assetId], references: [id])
-  assetId        String
+  assetId        String 
   username       AssetUser  @relation("allocateAssetUser", fields: [usernameId], references: [id])
   usernameId     String
   label          Rooms      @relation("allocateRooms", fields: [labelId], references: [id])
@@ -204,7 +207,9 @@ model Transfer {
   id               String    @id @default(uuid())
   userTransferTo   AssetUser @relation("transferAsset", fields: [userTransferToId], references: [id])
   userTransferToId String
-  transferDate     String
+  transferDate     DateTime
+  createdBy   User     @relation("transferUser", fields: [createdById], references: [id])
+  createdById String
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
@@ -214,7 +219,9 @@ model SystemAudit {
   status    String
   remarks   String
   audit     Asset    @relation("auditAsset", fields: [auditId], references: [id])
-  auditId   String
+  auditId   String   @unique
+  createdBy   User     @relation("auditUser", fields: [createdById], references: [id])
+  createdById String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

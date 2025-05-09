@@ -12,7 +12,7 @@ export const createAllocation = async(input:createAllocationSchemaInput):Promise
             assetId: input.asset,
             usernameId: input.username,
             labelId: input.label,
-        }
+        },include:{label:true}
        })
 
        if(!allocation){
@@ -29,7 +29,7 @@ export const findAllocation = async(input:findAllocationSchemaInput):Promise<{su
     try {
 
          const allocation =  await prisma.allocation.findUnique({
-            where:{id:input.id}
+            where:{id:input.id},include:{label:true}
          })
          if(!allocation){
             return {success:false, message:'Allocation not found with Id'}
@@ -44,7 +44,9 @@ export const findAllocation = async(input:findAllocationSchemaInput):Promise<{su
 export const findAllAllocation = async():Promise<{success:boolean; message:string,allocation?:Allocation[]}> =>{
     try {
 
-         const allocation =  await prisma.allocation.findMany()
+         const allocation =  await prisma.allocation.findMany({
+            include:{label:true}
+         })
          if(!allocation){
             return {success:false, message:'All Allocations not be found'}
          }
@@ -62,7 +64,7 @@ export const findAllAllocation = async():Promise<{success:boolean; message:strin
 export const updateAllocation = async(input:updateAllocationSchemaInput):Promise<{success:boolean; message:string,allocation?:Allocation}> =>{
     try {
         const findAllocation = await prisma.allocation.findUnique({
-            where:{id:input.id},
+            where:{id:input.id},include:{label:true}
         })
 
         if(!findAllocation){
@@ -77,7 +79,6 @@ export const updateAllocation = async(input:updateAllocationSchemaInput):Promise
             ...(input.unit && { unit: input.unit }),
           };
 
-          console.log(updateData)
 
           // Check if there's actually data to update
           if (Object.keys(updateData).length === 0) {
@@ -88,6 +89,7 @@ export const updateAllocation = async(input:updateAllocationSchemaInput):Promise
           const allocation = await prisma.allocation.update({
             where: { id: input.id },
             data: updateData,
+            include:{label:true}
           });
 
           
@@ -102,7 +104,7 @@ export const deleteAllocation = async(input:findAllocationSchemaInput):Promise<{
     try {
 
      const findAllocation  = await prisma.allocation.findUnique({
-        where:{ id: input.id}
+        where:{ id: input.id},include:{label:true}
      })
 
      if(!findAllocation){

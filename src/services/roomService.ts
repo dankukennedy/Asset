@@ -5,7 +5,7 @@ import { createRoomSchemaInput, findRoomSchemaInput, updateRoomSchemaInput } fro
 export const createRoom = async(input:createRoomSchemaInput):Promise<{success:boolean, message:string, room?:Rooms;}>=>{
     try {
         const roomLabel = await prisma.rooms.findUnique({
-            where:{label:input.label}
+            where:{label:input.label}, include:{createdBy:true}
         })
         if(roomLabel){
             return {success:false, message:'Room Label already Existed'}

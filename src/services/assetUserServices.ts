@@ -24,10 +24,11 @@ export const createAssetUser = async(input:assetUserSchemaInput):Promise<{ succe
 export const findAssetUser = async(input:findAssetUserSchemaInput):Promise<{ success: boolean; message: string; assetUser?:AssetUser}>=>{
    try {
          const assetUser = await prisma.assetUser.findUnique({
-            where:{id:input.id}
+            where:{id:input.id}, include:{userDepartment:true, }
+            
          })
          if(!assetUser){
-            return { success:false, message:'no  Asset user with that it '}
+            return { success:false, message:'no  Asset user with that Id '}
          }
 
      return {success:true, message:'Asset user Created successfully',assetUser}

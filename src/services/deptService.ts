@@ -98,7 +98,7 @@ export const updateDepartment = async(input:updateDeptSchemaInput):Promise<{succ
             data:{
                 ...(input.name && { name: input.name }),
                 ...(input.blockId && { blockId: input.blockId })
-            }
+            },include:{deptBlock:{select:{name:true}}}
         })
         return { success:true, message:'department updated successfully ',department}
     } catch (error) {
@@ -109,14 +109,14 @@ export const updateDepartment = async(input:updateDeptSchemaInput):Promise<{succ
 export const deleteDepartment = async(input:findDeptIdSchemaInput):Promise<{success:boolean; message:string; department?:Department}> => {
     try {
          const findDept = await prisma.department.findUnique({
-            where:{id:input.id}
+            where:{id:input.id},include:{deptBlock:{select:{name:true}}}
          })
          if(!findDept){
             return { success:false, message:' no department found with Id'}
          }
 
          const department = await prisma.department.delete({
-            where:{id:input.id}
+            where:{id:input.id},include:{deptBlock:{select:{name:true}}}
          })
 
         return {success:true, message:'department deleted successfully',department}

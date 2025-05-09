@@ -8,8 +8,8 @@ export type assetUserSchemaInput = z.infer<typeof assetUserSchema>
 
 export const updateAssetUserSchema = z.object({
   id: z.string().nonempty({message:"Id is required"}),
-  name: z.string().min(2,{message:"Asset Username cannot less than 2 characters"}).max(60,{message:""}).nonempty(),
-  userDeptId : z.string().min(4,{message:"user department id cannot be less than 4 characters"}).nonempty()
+  name: z.string().min(2,{message:"Asset Username cannot less than 2 characters"}).max(60,{message:""}).optional(),
+  userDeptId : z.string().min(4,{message:"user department id cannot be less than 4 characters"}).optional()
 })
 export type updateAssetUserSchemaInput = z.infer<typeof updateAssetUserSchema>
 
