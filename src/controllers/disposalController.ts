@@ -1,10 +1,11 @@
 import { Request,Response, NextFunction } from "express";
 import { Prisma } from '@prisma/client'
 import { ZodError} from 'zod'
-import { AllDeco, createDeco, deleteAllDeco, deleteDeco, fineDeco, updateDeco } from "../services/decommissionServices";
-import { createDecoSchema, findDecoSchema, updateDecoSchema } from "../model/decommissionDataTypes";
+import { createDisposalSchema, findDisposalSchema, updateDisposalSchema } from "../model/disposalDataTypes";
+import { allDisposal, createDisposal, deleteAllDisposal, deleteDisposal, findDisposal, updateDisposal } from "../services/disposalService";
 
-type Decommission = Prisma.DecommissionGetPayload<{}>
+
+type Disposal = Prisma.DisposalGetPayload<{}>
 
 
   type ApiResponse<T = any> = {
@@ -19,15 +20,89 @@ type Decommission = Prisma.DecommissionGetPayload<{}>
 };
 
 
-export const createDecoHandler = async(req:Request, res:Response<ApiResponse<Decommission>>, next:NextFunction) =>{
+export const createDisposalHandler = async(req:Request, res:Response<ApiResponse<Disposal>>, next:NextFunction) =>{
     try {
-        const validate = createDecoSchema.parse(req.body);
-        const result =  await createDeco(validate);
+        const validate = createDisposalSchema.parse(req.body);
+        const result =  await createDisposal(validate);
         if(!result.message){
          const statusCode = result.message.includes('found') ? 404 : 400;
           return res.status(statusCode).json({success:result.success, message:result.message})
         }
-       return res.status(200).json({success:result.success, message:result.message, data:result.deco})
+       return res.status(200).json({success:result.success, message:result.message, data:result.disposal})
+    
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err =>({
+                field: err.path.join('.'),
+                message: err.message
+            }))
+           return res.status(400).json({success:false, message:'Creating Disposal Validation Fail', errors: errorMessages});
+        }
+        if(error instanceof Error){
+           return res.status(400).json({success:false, message:error.message});
+        }
+        next(error);
+    }
+}
+
+export const findDisposalHandler = async(req:Request, res:Response<ApiResponse<Disposal>>, next:NextFunction) =>{
+    try {
+        const validate = findDisposalSchema.parse(req.body);
+        const result =  await findDisposal(validate);
+        if(!result.message){
+         const statusCode = result.message.includes('found') ? 404 : 400;
+          return res.status(statusCode).json({success:result.success, message:result.message})
+        }
+       return res.status(200).json({success:result.success, message:result.message, data:result.disposal})
+    
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err =>({
+                field: err.path.join('.'),
+                message: err.message
+            }))
+           return res.status(400).json({success:false, message:'Finding Disposal Validation Fail', errors: errorMessages});
+        }
+        if(error instanceof Error){
+           return res.status(400).json({success:false, message:error.message});
+        }
+        next(error);
+    }
+}
+export const allDisposalHandler = async(req:Request, res:Response<ApiResponse<Disposal[]>>, next:NextFunction) =>{
+    try {
+
+        const result =  await allDisposal();
+        if(!result.message){
+         const statusCode = result.message.includes('found') ? 404 : 400;
+          return res.status(statusCode).json({success:result.success, message:result.message})
+        }
+       return res.status(200).json({success:result.success, message:result.message, data:result.disposal})
+    
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err =>({
+                field: err.path.join('.'),
+                message: err.message
+            }))
+           return res.status(400).json({success:false, message:'All Disposal Validation Fail', errors: errorMessages});
+        }
+        if(error instanceof Error){
+           return res.status(400).json({success:false, message:error.message});
+        }
+        next(error);
+    }
+}
+export const updateDisposalHandler = async(req:Request, res:Response<ApiResponse<Disposal>>, next:NextFunction) =>{
+    try {
+        const validate = updateDisposalSchema.parse(req.body);
+        const result =  await updateDisposal(validate);
+        if(!result.message){
+         const statusCode = result.message.includes('found') ? 404 : 400;
+          return res.status(statusCode).json({success:result.success, message:result.message})
+        }
+       return res.status(200).json({success:result.success, message:result.message, data:result.disposal})
+    
     } catch (error) {
         if(error instanceof ZodError){
             const errorMessages = error.errors.map(err =>({
@@ -42,23 +117,47 @@ export const createDecoHandler = async(req:Request, res:Response<ApiResponse<Dec
         next(error);
     }
 }
-
-export const fineDecoHandler = async(req:Request, res:Response<ApiResponse<Decommission>>, next:NextFunction) =>{
+export const deleteDisposalHandler = async(req:Request, res:Response<ApiResponse<Disposal>>, next:NextFunction) =>{
     try {
-        const validate =  findDecoSchema.parse(req.body);
-        const result =  await fineDeco(validate);
+        const validate = findDisposalSchema.parse(req.body);
+        const result =  await deleteDisposal(validate);
         if(!result.message){
          const statusCode = result.message.includes('found') ? 404 : 400;
           return res.status(statusCode).json({success:result.success, message:result.message})
         }
-       return res.status(200).json({success:result.success, message:result.message, data:result.deco})
+       return res.status(200).json({success:result.success, message:result.message, data:result.disposal})
+    
     } catch (error) {
         if(error instanceof ZodError){
             const errorMessages = error.errors.map(err =>({
                 field: err.path.join('.'),
                 message: err.message
             }))
-           return res.status(400).json({success:false, message:'Finding Decommission validation Fail', errors: errorMessages});
+           return res.status(400).json({success:false, message:'Creating Decommission Validation Fail', errors: errorMessages});
+        }
+        if(error instanceof Error){
+           return res.status(400).json({success:false, message:error.message});
+        }
+        next(error);
+    }
+}
+export const deleteAllDisposalHandler  = async(req:Request, res:Response<ApiResponse<Disposal[]>>, next:NextFunction) =>{
+    try {
+
+        const result =  await deleteAllDisposal();
+        if(!result.message){
+         const statusCode = result.message.includes('found') ? 404 : 400;
+          return res.status(statusCode).json({success:result.success, message:result.message})
+        }
+       return res.status(200).json({success:result.success, message:result.message, data:result.disposal})
+    
+    } catch (error) {
+        if(error instanceof ZodError){
+            const errorMessages = error.errors.map(err =>({
+                field: err.path.join('.'),
+                message: err.message
+            }))
+           return res.status(400).json({success:false, message:'Delete All Validation Fail', errors: errorMessages});
         }
         if(error instanceof Error){
            return res.status(400).json({success:false, message:error.message});
@@ -67,98 +166,3 @@ export const fineDecoHandler = async(req:Request, res:Response<ApiResponse<Decom
     }
 }
 
-export const AllDecoHandler = async(req:Request, res:Response<ApiResponse<Decommission[]>>, next:NextFunction) =>{
-    try {
-
-        const result =  await AllDeco();
-        if(!result.message){
-         const statusCode = result.message.includes('found') ? 404 : 400;
-          return res.status(statusCode).json({success:result.success, message:result.message})
-        }
-       return res.status(200).json({success:result.success, message:result.message, data:result.deco})
-    } catch (error) {
-        if(error instanceof ZodError){
-            const errorMessages = error.errors.map(err =>({
-                field: err.path.join('.'),
-                message: err.message
-            }))
-           return res.status(400).json({success:false, message:'All Decommission validation Fail', errors: errorMessages});
-        }
-        if(error instanceof Error){
-           return res.status(400).json({success:false, message:error.message});
-        }
-        next(error);
-    }
-}
-
-export const deleteDecoHandler = async(req:Request, res:Response<ApiResponse<Decommission>>, next:NextFunction) =>{
-    try {
-        const validate =  findDecoSchema.parse(req.body);
-        const result =  await deleteDeco(validate);
-        if(!result.message){
-         const statusCode = result.message.includes('found') ? 404 : 400;
-          return res.status(statusCode).json({success:result.success, message:result.message})
-        }
-       return res.status(200).json({success:result.success, message:result.message, data:result.deco})
-    } catch (error) {
-        if(error instanceof ZodError){
-            const errorMessages = error.errors.map(err =>({
-                field: err.path.join('.'),
-                message: err.message
-            }))
-           return res.status(400).json({success:false, message:'Deleting Decommission validation Fail', errors: errorMessages});
-        }
-        if(error instanceof Error){
-           return res.status(400).json({success:false, message:error.message});
-        }
-        next(error);
-    }
-}
-
-export const deleteAllDecoHandler = async(req:Request, res:Response<ApiResponse<Decommission[]>>, next:NextFunction) =>{
-    try {
-
-        const result =  await deleteAllDeco();
-        if(!result.message){
-         const statusCode = result.message.includes('found') ? 404 : 400;
-          return res.status(statusCode).json({success:result.success, message:result.message})
-        }
-       return res.status(200).json({success:result.success, message:result.message, data:result.deco})
-    } catch (error) {
-        if(error instanceof ZodError){
-            const errorMessages = error.errors.map(err =>({
-                field: err.path.join('.'),
-                message: err.message
-            }))
-           return res.status(400).json({success:false, message:'Deleting All Decommission validation Fail', errors: errorMessages});
-        }
-        if(error instanceof Error){
-           return res.status(400).json({success:false, message:error.message});
-        }
-        next(error);
-    }
-}
-
-export const updateDecoHandler = async(req:Request, res:Response<ApiResponse<Decommission>>, next:NextFunction) =>{
-    try {
-        const validate =  updateDecoSchema.parse(req.body);
-        const result =  await updateDeco(validate);
-        if(!result.message){
-         const statusCode = result.message.includes('found') ? 404 : 400;
-          return res.status(statusCode).json({success:result.success, message:result.message})
-        }
-       return res.status(200).json({success:result.success, message:result.message, data:result.deco})
-    } catch (error) {
-        if(error instanceof ZodError){
-            const errorMessages = error.errors.map(err =>({
-                field: err.path.join('.'),
-                message: err.message
-            }))
-           return res.status(400).json({success:false, message:'Updating Decommission validation Fail', errors: errorMessages});
-        }
-        if(error instanceof Error){
-           return res.status(400).json({success:false, message:error.message});
-        }
-        next(error);
-    }
-}

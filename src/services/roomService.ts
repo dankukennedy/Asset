@@ -21,7 +21,6 @@ export const createRoom = async(input:createRoomSchemaInput):Promise<{success:bo
             return  {success:false, message:'Room cannot be created'}
         }
 
-
         return {success:true, message:'Rooms created Successfully', room}
     } catch (error:unknown) {
         throw error

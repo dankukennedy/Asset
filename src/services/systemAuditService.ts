@@ -1,8 +1,7 @@
 import prisma from '../catalyst/prisma';
 import {SystemAudit} from '@prisma/client'
 import { createSystemAuditSchemaInput, findSystemAuditSchemaInput, updateSystemAuditSchemaInput } from '../model/systemAuditDataTypes';
-import { connect } from 'http2';
-import { input } from 'zod';
+
 
 export const createSystemAudit = async(input:createSystemAuditSchemaInput):Promise<{success:boolean; message:string,systemAudit?:SystemAudit}>=>{
     try {
