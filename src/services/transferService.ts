@@ -5,6 +5,14 @@ import { createTransferSchemaInput, findTransferSchemaInput, updateTransferSchem
 export const createTransfer = async(input:createTransferSchemaInput):Promise<{success:boolean; message:string,transfer?: Transfer}> =>{
     try {
 
+        const user = await prisma.user.findUnique({
+            where:{id:input.createdById}
+        })
+
+        if(!user){
+            return { success:false, message:`Created By user does not exist `,}
+        }
+
         const findAssetUser = await prisma.assetUser.findUnique({
             where:{id:input.userTransferToId}
         })
