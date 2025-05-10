@@ -13,7 +13,12 @@ export const createTransfer = async(input:createTransferSchemaInput):Promise<{su
             return { success:false, message:`Asset user to transfer to does not exist with Id`,}
         }
 
-
+        const findTransfer = await prisma.transfer.findFirst({
+            where:{ userTransferToId:input.userTransferToId}
+        })
+        if(findTransfer){
+           return { success:false, message:`Asset Already transfer exist with Id`,}
+        }
         const transfer =  await prisma.transfer.create({
             data:{
                 userTransferTo:{ connect:{id:input.userTransferToId}},

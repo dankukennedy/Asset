@@ -11,6 +11,13 @@ export const createDeco = async(input:createDecoSchemaInput):Promise<{success:bo
          if(!findUser){
            return {success:false, message:'Created by User Does not exist'}
          }
+
+         const findDeco = await prisma.decommission.findFirst({
+            where:{decoId:input.decoId}
+         })
+         if(findDeco){
+            return {success:false, message:'Asset Already Dispose '}
+         }
          const deco = await prisma.decommission.create({
             data:{
                 dateOfDec:input.dateOfDec,

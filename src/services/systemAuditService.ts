@@ -11,6 +11,13 @@ export const createSystemAudit = async(input:createSystemAuditSchemaInput):Promi
          if(!findAsset){
             return {success:false, message:'No assets found with specified id'}
          }
+         const findAudit =  await prisma.systemAudit.findFirst({
+            where:{auditId:input.auditId}
+         })
+
+         if(findAudit){
+            return {success:false, message:'Assets audit already created found with specified id'}
+         }
          const systemAudit = await prisma.systemAudit.create({
             data:{
                 status:input.status,

@@ -10,6 +10,12 @@ export const createDisposal = async(input:createDisposalSchemaInput):Promise<{su
          if(!findAsset){
             return {success:false, message:'Asset to Dispose Id not found'}
          }
+         const findAssetDis = await prisma.disposal.findFirst({
+            where:{disposeId:input.disposeId}
+         })
+         if(findAssetDis){
+            return {success:false, message:'Asset to Dispose Id already Disposed'}
+         }
          const disposal = await prisma.disposal.create({
             data:{
                 userTransferTo:input.userTransferTo,

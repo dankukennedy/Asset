@@ -5,6 +5,12 @@ import { createAllocationSchemaInput, findAllocationSchemaInput, updateAllocatio
 export const createAllocation = async(input:createAllocationSchemaInput):Promise<{success:boolean; message:string,allocation?:Allocation}> =>{
     try {
 
+        const findAsset = await prisma.allocation.findFirst({
+            where:{assetId:input.asset}
+        })
+        if(findAsset){
+            return {success:false, message:'Asset already Allocated found'}
+        }
        const allocation = await prisma.allocation.create({
         data:{
             userDeptId: input.userDepartment,
@@ -50,6 +56,7 @@ export const findAllAllocation = async():Promise<{success:boolean; message:strin
          if(!allocation){
             return {success:false, message:'All Allocations not be found'}
          }
+         
          if(allocation.length === 0){
             return {success:false, message:'No Allocations not found '}
          }
@@ -70,7 +77,7 @@ export const updateAllocation = async(input:updateAllocationSchemaInput):Promise
         if(!findAllocation){
             return {success:false, message:'Allocation not found'}
         }
- 
+       
         const updateData = {
             ...(input.assetId && { asset: { connect: { id: input.assetId } } }),
             ...(input.labelId && { room: { connect: { id: input.labelId } } }),
