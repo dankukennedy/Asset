@@ -6,7 +6,7 @@ import { JsonValue } from '@prisma/client/runtime/library';
 
 export const createAsset = async(input: assetDataSchemaInput): Promise<{ success: boolean; message: string; parsedAsset?: Asset }> => {
    try {
-       const serial = await prisma.asset.findUnique({
+       const serial = await prisma.asset.findFirst({
            where: { serialNo: input.serialNo }
        })
        if(serial) {
