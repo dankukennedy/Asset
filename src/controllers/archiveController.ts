@@ -1,17 +1,19 @@
 import { Request,Response, NextFunction } from "express";
 import { Prisma } from '@prisma/client'
 import { ZodError} from 'zod'
-import { createAchieveSchema, findAchieveSchema, updateAchieveSchema } from "../model/achieveDataTypes";
-import { allAchieve, createAchieve, deleteAchieve, deleteAllAchieve, findAchieve, updateAchieve } from "../services/achieveService";
+import { createArchiveSchema, findArchiveSchema, updateArchiveSchema } from "../model/archiveDataTypes";
+import { allArchive, createArchive, deleteAllArchive, deleteArchive, findArchive, updateArchive } from "../services/archiveService";
 
-type Achieve = Prisma.AchieveGetPayload<{}>
+
+
+type Archive = Prisma.ArchiveGetPayload<{}>
 
 
   type ApiResponse<T = any> = {
-    success: boolean; 
-     message: string; 
+    success: boolean;
+     message: string;
      data?: T;
-    asset?: T | T[]; 
+    asset?: T | T[];
     errors?: Array<{
       field: string;
       message: string;
@@ -19,22 +21,22 @@ type Achieve = Prisma.AchieveGetPayload<{}>
 };
 
 
-export const createAchieveHandler =  async(req:Request, res:Response<ApiResponse<Achieve>>, next:NextFunction) =>{
+export const createArchiveHandler =  async(req:Request, res:Response<ApiResponse<Archive>>, next:NextFunction) =>{
     try {
-       const validate = createAchieveSchema.parse(req.body);
-       const result  = await  createAchieve(validate);
+       const validate = createArchiveSchema.parse(req.body);
+       const result  = await  createArchive(validate);
        if(!result.success){
          const statusCode = result.message.includes('found') ? 404 : 400;
          return res.status(statusCode).json({success:result.success, message:result.message})
        }
-      return  res.status(201).json({success:result.success, message:result.message, data:result.achieve})
+      return  res.status(201).json({success:result.success, message:result.message, data:result.archive})
   } catch (error) {
      if(error instanceof ZodError){
          const errorMessages = error.errors.map(err =>({
              field: err.path.join('.'),
              message: err.message
          }))
-         return  res.status(400).json({success:false, message:'creating Achieve validation Fail', errors: errorMessages});
+         return  res.status(400).json({success:false, message:'creating Archive validation Fail', errors: errorMessages});
      }
      if(error instanceof Error){
          return  res.status(400).json({success:false, message:error.message});
@@ -43,22 +45,22 @@ export const createAchieveHandler =  async(req:Request, res:Response<ApiResponse
     }
  }
 
-export const findAchieveHandler =  async(req:Request, res:Response<ApiResponse<Achieve>>, next:NextFunction) =>{
+export const findArchiveHandler =  async(req:Request, res:Response<ApiResponse<Archive>>, next:NextFunction) =>{
     try {
-       const validate = findAchieveSchema.parse(req.body);
-       const result  = await  findAchieve(validate);
+       const validate = findArchiveSchema.parse(req.body);
+       const result  = await findArchive(validate);
        if(!result.success){
          const statusCode = result.message.includes('found') ? 404 : 400;
          return res.status(statusCode).json({success:result.success, message:result.message})
        }
-      return  res.status(201).json({success:result.success, message:result.message, data:result.achieve})
+      return  res.status(201).json({success:result.success, message:result.message, data:result.archive})
   } catch (error) {
      if(error instanceof ZodError){
          const errorMessages = error.errors.map(err =>({
              field: err.path.join('.'),
              message: err.message
          }))
-         return  res.status(400).json({success:false, message:'Finding Achieve validation Fail', errors: errorMessages});
+         return  res.status(400).json({success:false, message:'Finding Archive validation Fail', errors: errorMessages});
      }
      if(error instanceof Error){
          return  res.status(400).json({success:false, message:error.message});
@@ -67,22 +69,22 @@ export const findAchieveHandler =  async(req:Request, res:Response<ApiResponse<A
     }
  }
 
-export const allAchieveHandler =  async(req:Request, res:Response<ApiResponse<Achieve[]>>, next:NextFunction) =>{
+export const allArchiveHandler =  async(req:Request, res:Response<ApiResponse<Archive[]>>, next:NextFunction) =>{
     try {
 
-       const result  = await  allAchieve();
+       const result  = await  allArchive();
        if(!result.success){
          const statusCode = result.message.includes('found') ? 404 : 400;
          return res.status(statusCode).json({success:result.success, message:result.message})
        }
-      return  res.status(201).json({success:result.success, message:result.message, data:result.achieve})
+      return  res.status(201).json({success:result.success, message:result.message, data:result.archive})
   } catch (error) {
      if(error instanceof ZodError){
          const errorMessages = error.errors.map(err =>({
              field: err.path.join('.'),
              message: err.message
          }))
-         return  res.status(400).json({success:false, message:'All Achieve validation Fail', errors: errorMessages});
+         return  res.status(400).json({success:false, message:'All Archive validation Fail', errors: errorMessages});
      }
      if(error instanceof Error){
          return  res.status(400).json({success:false, message:error.message});
@@ -91,22 +93,22 @@ export const allAchieveHandler =  async(req:Request, res:Response<ApiResponse<Ac
     }
  }
 
-export const updateAchieveHandler =  async(req:Request, res:Response<ApiResponse<Achieve>>, next:NextFunction) =>{
+export const updateArchiveHandler =  async(req:Request, res:Response<ApiResponse<Archive>>, next:NextFunction) =>{
     try {
-       const validate = updateAchieveSchema.parse(req.body);
-       const result  = await  updateAchieve(validate);
+       const validate = updateArchiveSchema.parse(req.body);
+       const result  = await  updateArchive(validate);
        if(!result.success){
          const statusCode = result.message.includes('found') ? 404 : 400;
          return res.status(statusCode).json({success:result.success, message:result.message})
        }
-      return  res.status(201).json({success:result.success, message:result.message, data:result.achieve})
+      return  res.status(201).json({success:result.success, message:result.message, data:result.archive})
   } catch (error) {
      if(error instanceof ZodError){
          const errorMessages = error.errors.map(err =>({
              field: err.path.join('.'),
              message: err.message
          }))
-         return  res.status(400).json({success:false, message:'Updating Achieve validation Fail', errors: errorMessages});
+         return  res.status(400).json({success:false, message:'Updating Archive validation Fail', errors: errorMessages});
      }
      if(error instanceof Error){
          return  res.status(400).json({success:false, message:error.message});
@@ -115,22 +117,22 @@ export const updateAchieveHandler =  async(req:Request, res:Response<ApiResponse
     }
  }
 
-export const deleteAchieveHandler =  async(req:Request, res:Response<ApiResponse<Achieve>>, next:NextFunction) =>{
+export const deleteArchiveHandler =  async(req:Request, res:Response<ApiResponse<Archive>>, next:NextFunction) =>{
     try {
-       const validate = findAchieveSchema.parse(req.body);
-       const result  = await  deleteAchieve(validate);
+       const validate = findArchiveSchema.parse(req.body);
+       const result  = await  deleteArchive(validate);
        if(!result.success){
          const statusCode = result.message.includes('found') ? 404 : 400;
          return res.status(statusCode).json({success:result.success, message:result.message})
        }
-      return  res.status(201).json({success:result.success, message:result.message, data:result.achieve})
+      return  res.status(201).json({success:result.success, message:result.message, data:result.archive})
   } catch (error) {
      if(error instanceof ZodError){
          const errorMessages = error.errors.map(err =>({
              field: err.path.join('.'),
              message: err.message
          }))
-         return  res.status(400).json({success:false, message:'Deleting Achieve validation Fail', errors: errorMessages});
+         return  res.status(400).json({success:false, message:'Deleting Archive validation Fail', errors: errorMessages});
      }
      if(error instanceof Error){
          return  res.status(400).json({success:false, message:error.message});
@@ -139,22 +141,22 @@ export const deleteAchieveHandler =  async(req:Request, res:Response<ApiResponse
     }
  }
 
-export const deleteAllAchieveHandler =  async(req:Request, res:Response<ApiResponse<Achieve[]>>, next:NextFunction) =>{
+export const deleteAllArchiveHandler =  async(req:Request, res:Response<ApiResponse<Archive[]>>, next:NextFunction) =>{
     try {
        
-       const result  = await  deleteAllAchieve();
+       const result  = await  deleteAllArchive();
        if(!result.success){
          const statusCode = result.message.includes('found') ? 404 : 400;
          return res.status(statusCode).json({success:result.success, message:result.message})
        }
-      return  res.status(201).json({success:result.success, message:result.message, data:result.achieve})
+      return  res.status(201).json({success:result.success, message:result.message, data:result.archive})
   } catch (error) {
      if(error instanceof ZodError){
          const errorMessages = error.errors.map(err =>({
              field: err.path.join('.'),
              message: err.message
          }))
-         return  res.status(400).json({success:false, message:'Deleting All Achieve validation Fail', errors: errorMessages});
+         return  res.status(400).json({success:false, message:'Deleting All Archive validation Fail', errors: errorMessages});
      }
      if(error instanceof Error){
          return  res.status(400).json({success:false, message:error.message});

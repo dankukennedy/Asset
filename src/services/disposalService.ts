@@ -4,6 +4,14 @@ import { createDisposalSchemaInput, findDisposalSchemaInput, updateDisposalSchem
 
 export const createDisposal = async(input:createDisposalSchemaInput):Promise<{success:boolean; message:string; disposal?:Disposal}>=>{
      try {
+          
+      const user = await prisma.user.findUnique({
+         where:{id:input.createdById}
+     })
+
+     if(!user){
+         return { success:false, message:`Created By user does not exist `,}
+     }
          const findAsset = await prisma.asset.findUnique({
             where:{id:input.disposeId}
          })

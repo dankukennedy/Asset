@@ -1,6 +1,6 @@
 import prisma from '../catalyst/prisma';
 import {Report} from '@prisma/client'
-import {  } from '../model/achieveDataTypes';
+import {  } from '../model/archiveDataTypes';
 import { createReportSchemaInput, findReportSchemaInput, updateReportSchemaInput } from '../model/reportDataTypes';
 
 export const  createReport = async(input:createReportSchemaInput):Promise<{success:boolean; message:string; report?:Report}> =>{

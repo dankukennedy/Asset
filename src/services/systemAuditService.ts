@@ -5,6 +5,12 @@ import { createSystemAuditSchemaInput, findSystemAuditSchemaInput, updateSystemA
 
 export const createSystemAudit = async(input:createSystemAuditSchemaInput):Promise<{success:boolean; message:string,systemAudit?:SystemAudit}>=>{
     try {
+         const  findUser = await prisma.user.findUnique({
+            where:{id:input.createdById}
+         })
+         if(!findUser){
+            return {success:false, message:'No Created user found'}
+         }
          const  findAsset = await prisma.asset.findUnique({
             where:{id:input.auditId}
          })

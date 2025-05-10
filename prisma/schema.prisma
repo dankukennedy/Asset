@@ -94,7 +94,7 @@ model User {
   asset          Asset[]        @relation("assetUser")
   block          Block[]        @relation("blockUser")
   report         Report[]       @relation("reportUser")
-  achieve        Achieve[]      @relation("achieveUser")
+  archive        Archive[]      @relation("archiveUser")
   decommission   Decommission[] @relation("decommissionUser")
   disposal       Disposal[]     @relation("disposalUser")
   rooms          Rooms[]        @relation("room")
@@ -126,7 +126,7 @@ model Asset {
   allocation   Allocation[]   @relation("allocateAsset")
   decommission Decommission[] @relation("decoAsset")
   disposal     Disposal[]     @relation("disposeAsset")
-  achieve      Achieve[]      @relation("achieveAsset")
+  archive      Archive[]      @relation("archiveAsset")
   report       Report[]       @relation("reportAsset")
 
   @@unique([serialNo], name: "asset_serialNo_unique")
@@ -175,6 +175,7 @@ model AssetUser {
   allocation     Allocation[] @relation("allocateAssetUser")
 
   @@unique([name])
+  @@index([name])
 }
 
 model Rooms {
@@ -187,6 +188,7 @@ model Rooms {
   allocation  Allocation[] @relation("allocateRooms")
 
   @@unique([label])
+  @@index([label])
 }
 
 model Allocation {
@@ -195,7 +197,7 @@ model Allocation {
   userDeptId     String
   unit           String
   asset          Asset      @relation("allocateAsset", fields: [assetId], references: [id])
-  assetId        String
+  assetId        String 
   username       AssetUser  @relation("allocateAssetUser", fields: [usernameId], references: [id])
   usernameId     String
   label          Rooms      @relation("allocateRooms", fields: [labelId], references: [id])
@@ -210,7 +212,7 @@ model Allocation {
 model Transfer {
   id               String    @id @default(uuid())
   userTransferTo   AssetUser @relation("transferAsset", fields: [userTransferToId], references: [id])
-  userTransferToId String
+  userTransferToId String  
   transferDate     DateTime
   createdBy        User      @relation("transferUser", fields: [createdById], references: [id])
   createdById      String
@@ -237,7 +239,7 @@ model Decommission {
   createdBy   User     @relation("decommissionUser", fields: [createdById], references: [id])
   createdById String
   decommission        Asset    @relation("decoAsset", fields: [decoId], references: [id])
-  decoId      String
+  decoId      String @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -249,22 +251,22 @@ model Disposal {
   createdBy      User     @relation("disposalUser", fields: [createdById], references: [id])
   createdById    String
   dispose        Asset    @relation("disposeAsset", fields: [disposeId], references: [id])
-  disposeId      String
+  disposeId      String @unique
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
 
-model Achieve {
+model Archive {
   id          String   @id @default(uuid())
-  createdBy   User     @relation("achieveUser", fields: [createdById], references: [id])
+  createdBy   User     @relation("archiveUser", fields: [createdById], references: [id])
   createdById String
-  achieve     Asset    @relation("achieveAsset", fields: [achieveId], references: [id])
-  achieveId   String 
+  archive     Asset    @relation("archiveAsset", fields: [archiveId], references: [id])
+  archiveId   String  @unique
   year      DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@unique([achieveId])
+  
 }
 
 model Report {
@@ -273,7 +275,7 @@ model Report {
   createdBy   User     @relation("reportUser", fields: [createdById], references: [id])
   createdById String
   report      Asset    @relation("reportAsset", fields: [reportId], references: [id])
-  reportId    String
+  reportId    String @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

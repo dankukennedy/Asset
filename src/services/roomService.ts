@@ -4,6 +4,13 @@ import { createRoomSchemaInput, findRoomSchemaInput, updateRoomSchemaInput } fro
 
 export const createRoom = async(input:createRoomSchemaInput):Promise<{success:boolean, message:string, room?:Rooms;}>=>{
     try {
+        const user = await prisma.user.findUnique({
+            where:{id:input.createdById}
+        })
+
+        if(!user){
+            return { success:false, message:`Created By user does not exist `,}
+        }
         const roomLabel = await prisma.rooms.findUnique({
             where:{label:input.label}, include:{createdBy:true}
         })
