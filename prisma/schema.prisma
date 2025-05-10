@@ -197,7 +197,7 @@ model Allocation {
   userDeptId     String
   unit           String
   asset          Asset      @relation("allocateAsset", fields: [assetId], references: [id])
-  assetId        String 
+  assetId        String
   username       AssetUser  @relation("allocateAssetUser", fields: [usernameId], references: [id])
   usernameId     String
   label          Rooms      @relation("allocateRooms", fields: [labelId], references: [id])
@@ -205,14 +205,14 @@ model Allocation {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  @@index([unit])
   @@unique([assetId])
+  @@index([unit])
 }
 
 model Transfer {
   id               String    @id @default(uuid())
   userTransferTo   AssetUser @relation("transferAsset", fields: [userTransferToId], references: [id])
-  userTransferToId String  
+  userTransferToId String
   transferDate     DateTime
   createdBy        User      @relation("transferUser", fields: [createdById], references: [id])
   createdById      String
@@ -233,15 +233,15 @@ model SystemAudit {
 }
 
 model Decommission {
-  id          String   @id @default(uuid())
-  dateOfDec   DateTime
-  reason      String
-  createdBy   User     @relation("decommissionUser", fields: [createdById], references: [id])
-  createdById String
-  decommission        Asset    @relation("decoAsset", fields: [decoId], references: [id])
-  decoId      String @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  dateOfDec    DateTime
+  reason       String
+  createdBy    User     @relation("decommissionUser", fields: [createdById], references: [id])
+  createdById  String
+  decommission Asset    @relation("decoAsset", fields: [decoId], references: [id])
+  decoId       String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Disposal {
@@ -251,7 +251,7 @@ model Disposal {
   createdBy      User     @relation("disposalUser", fields: [createdById], references: [id])
   createdById    String
   dispose        Asset    @relation("disposeAsset", fields: [disposeId], references: [id])
-  disposeId      String @unique
+  disposeId      String   @unique
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -261,12 +261,10 @@ model Archive {
   createdBy   User     @relation("archiveUser", fields: [createdById], references: [id])
   createdById String
   archive     Asset    @relation("archiveAsset", fields: [archiveId], references: [id])
-  archiveId   String  @unique
-  year      DateTime
+  archiveId   String   @unique
+  year        DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  
 }
 
 model Report {
@@ -275,7 +273,7 @@ model Report {
   createdBy   User     @relation("reportUser", fields: [createdById], references: [id])
   createdById String
   report      Asset    @relation("reportAsset", fields: [reportId], references: [id])
-  reportId    String @unique
+  reportId    String   @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
