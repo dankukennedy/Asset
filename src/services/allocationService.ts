@@ -5,19 +5,20 @@ import { createAllocationSchemaInput, findAllocationSchemaInput, updateAllocatio
 export const createAllocation = async(input:createAllocationSchemaInput):Promise<{success:boolean; message:string,allocation?:Allocation}> =>{
     try {
 
-        const findAsset = await prisma.allocation.findFirst({
-            where:{assetId:input.asset}
+        const findAsset = await prisma.allocation.findUnique({
+            where:{assetId:input.assetId}
         })
         if(findAsset){
             return {success:false, message:'Asset already Allocated found'}
         }
+
        const allocation = await prisma.allocation.create({
         data:{
-            userDeptId: input.userDepartment,
+            userDeptId: input.userDeptId,
             unit: input.unit,
-            assetId: input.asset,
-            usernameId: input.username,
-            labelId: input.label,
+            assetId: input.usernameId,
+            usernameId: input.usernameId,
+            labelId: input.labelId,
         },include:{label:true}
        })
 

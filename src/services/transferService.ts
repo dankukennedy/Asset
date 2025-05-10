@@ -8,7 +8,7 @@ export const createTransfer = async(input:createTransferSchemaInput):Promise<{su
         const findAssetUser = await prisma.assetUser.findUnique({
             where:{id:input.userTransferToId}
         })
-        console.log(input.userTransferToId)
+
         if(!findAssetUser){
             return { success:false, message:`Asset user to transfer to does not exist with Id`,}
         }

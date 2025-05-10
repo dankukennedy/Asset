@@ -133,7 +133,7 @@ CREATE TABLE "SystemAudit" (
 -- CreateTable
 CREATE TABLE "Decommission" (
     "id" TEXT NOT NULL,
-    "dateOfDec" TEXT NOT NULL,
+    "dateOfDec" TIMESTAMP(3) NOT NULL,
     "reason" TEXT NOT NULL,
     "createdById" TEXT NOT NULL,
     "decoId" TEXT NOT NULL,
@@ -147,7 +147,7 @@ CREATE TABLE "Decommission" (
 CREATE TABLE "Disposal" (
     "id" TEXT NOT NULL,
     "userTransferTo" TEXT NOT NULL,
-    "transferDate" TEXT NOT NULL,
+    "disposeDate" TIMESTAMP(3) NOT NULL,
     "createdById" TEXT NOT NULL,
     "disposeId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -161,7 +161,7 @@ CREATE TABLE "Achieve" (
     "id" TEXT NOT NULL,
     "createdById" TEXT NOT NULL,
     "achieveId" TEXT NOT NULL,
-    "years" TIMESTAMP(3) NOT NULL,
+    "year" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

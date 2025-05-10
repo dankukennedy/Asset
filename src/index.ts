@@ -11,6 +11,8 @@ import  transferRoutes from './routes/transferRoute'
 import  auditRoutes from './routes/systemAuditRoutes'
 import  decoRoutes from './routes/decommissionRoutes'
 import  disposalRoutes from './routes/disposalRoutes'
+import  reportRoutes from './routes/reportRoutes'
+import  achieveRoutes from './routes/achieveRoutes'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -28,6 +30,8 @@ app.use('/api', transferRoutes);
 app.use('/api', auditRoutes);
 app.use('/api', decoRoutes);
 app.use('/api', disposalRoutes);
+app.use('/api', reportRoutes);
+app.use('/api', achieveRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

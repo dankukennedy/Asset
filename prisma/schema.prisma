@@ -204,6 +204,7 @@ model Allocation {
   updatedAt      DateTime   @updatedAt
 
   @@index([unit])
+  @@unique([assetId])
 }
 
 model Transfer {
@@ -231,7 +232,7 @@ model SystemAudit {
 
 model Decommission {
   id          String   @id @default(uuid())
-  dateOfDec   String
+  dateOfDec   DateTime
   reason      String
   createdBy   User     @relation("decommissionUser", fields: [createdById], references: [id])
   createdById String
@@ -258,10 +259,12 @@ model Achieve {
   createdBy   User     @relation("achieveUser", fields: [createdById], references: [id])
   createdById String
   achieve     Asset    @relation("achieveAsset", fields: [achieveId], references: [id])
-  achieveId   String
-  years       DateTime
+  achieveId   String 
+  year      DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([achieveId])
 }
 
 model Report {

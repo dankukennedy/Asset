@@ -13,14 +13,13 @@ export const createDepartment = async(input:deptSchemaInput):Promise<{success:bo
             where: { id: input.blockId }
           });
           if (!blockExists) {
-            throw new Error(`Block with ID ${input.blockId} not found`);
-
+            return {success:false, message:`Block with ID ${input.blockId} not found`}
           }
           const userExists = await prisma.user.findUnique({
             where: { id: input.userId }
           });
           if (!userExists) {
-            throw new Error(`User with ID ${input.userId} not found`);
+            return {success:false, message:`User with ID ${input.userId} not found`}
           }
          const department = await prisma.department.create({
             data: {
